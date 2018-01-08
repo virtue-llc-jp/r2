@@ -212,8 +212,15 @@ export default class ArbitragerImpl implements Arbitrager {
             ? _.round(minExitTargetProfitPercent / 100 * targetVolumeNotional)
             : Number.MIN_SAFE_INTEGER
         ]) as number;
+        //
+        const commission = _([pair[0],pair[1]]).sumBy(o => this.calcCommissionFromConfig(o));
+        const pairProfit = _.round(this.calcProfit([pair[0],pair[1]],commission));
+        //
         this.log.debug(`effectiveMinExitTargetProfit: ${effectiveMinExitTargetProfit}`);
-        if (targetProfit >= effectiveMinExitTargetProfit) {
+        //
+        this.log.info(`netProfit:${(targetProfit+pairProfit).toString()}`);
+        //
+        if (targetProfit + pairProfit >= effectiveMinExitTargetProfit) {
           this.lastSpreadAnalysisResult = result;
           return key;
         }
@@ -273,7 +280,9 @@ export default class ArbitragerImpl implements Arbitrager {
     }
     this.log.info(t`OpenPairs`);
     activePairs.forEach(pair => {
-      this.log.info(`[${pair[0].toShortString()}, ${pair[1].toShortString()}]`);
+      const commission = _([pair[0],pair[1]]).sumBy(o => this.calcCommissionFromConfig(o));
+      const profit = this.calcProfit([pair[0],pair[1]],commission);
+      this.log.info(`[${pair[0].toShortString()}, ${pair[1].toShortString()}, Profit:${_.round(profit)}]`);
     });
   }
 
