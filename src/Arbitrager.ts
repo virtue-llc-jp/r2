@@ -3,17 +3,11 @@ import { injectable, inject } from 'inversify';
 import * as _ from 'lodash';
 import OrderImpl from './OrderImpl';
 import {
-  BrokerAdapterRouter,
   ConfigStore,
-  PositionService,
-  QuoteAggregator,
-  SpreadAnalyzer,
-  Arbitrager,
   SpreadAnalysisResult,
   OrderType,
   QuoteSide,
   OrderSide,
-  LimitCheckerFactory,
   ActivePairStore,
   Quote,
   OrderPair
@@ -24,9 +18,14 @@ import symbols from './symbols';
 import { fatalErrors } from './constants';
 import SingleLegHandler from './SingleLegHandler';
 import { findBrokerConfig } from './configUtil';
+import QuoteAggregator from './QuoteAggregator';
+import PositionService from './PositionService';
+import SpreadAnalyzer from './SpreadAnalyzer';
+import LimitCheckerFactory from './LimitCheckerFactory';
+import BrokerAdapterRouter from './BrokerAdapterRouter';
 
 @injectable()
-export default class ArbitragerImpl implements Arbitrager {
+export default class Arbitrager {
   private readonly log = getLogger(this.constructor.name);
   private lastSpreadAnalysisResult: SpreadAnalysisResult;
   private shouldStop: boolean = false;
@@ -34,12 +33,12 @@ export default class ArbitragerImpl implements Arbitrager {
 
   // TODO: avoid constructor over-injection
   constructor(
-    @inject(symbols.QuoteAggregator) private readonly quoteAggregator: QuoteAggregator,
+    private readonly quoteAggregator: QuoteAggregator,
     @inject(symbols.ConfigStore) private readonly configStore: ConfigStore,
-    @inject(symbols.PositionService) private readonly positionService: PositionService,
-    @inject(symbols.BrokerAdapterRouter) private readonly brokerAdapterRouter: BrokerAdapterRouter,
-    @inject(symbols.SpreadAnalyzer) private readonly spreadAnalyzer: SpreadAnalyzer,
-    @inject(symbols.LimitCheckerFactory) private readonly limitCheckerFactory: LimitCheckerFactory,
+    private readonly positionService: PositionService,
+    private readonly brokerAdapterRouter: BrokerAdapterRouter,
+    private readonly spreadAnalyzer: SpreadAnalyzer,
+    private readonly limitCheckerFactory: LimitCheckerFactory,
     @inject(symbols.ActivePairStore) private readonly activePairStore: ActivePairStore
   ) {
     const onSingleLegConfig = configStore.config.onSingleLeg;
@@ -60,7 +59,7 @@ export default class ArbitragerImpl implements Arbitrager {
     this.status = 'Stopping';
     this.log.info('Stopping Arbitrager...');
     if (this.quoteAggregator) {
-      this.quoteAggregator.onQuoteUpdated = undefined;
+      this.quoteAggregator.onQuoteUpdated = () => Promise.resolve();
     }
     this.log.info('Stopped Arbitrager.');
     this.status = 'Stopped';
@@ -182,45 +181,38 @@ export default class ArbitragerImpl implements Arbitrager {
     }
   }
 
-  private calcProfit(orders: OrderImpl[], commission: number) {
-    return _(orders).sumBy(o => (o.side === OrderSide.Sell ? 1 : -1) * o.filledNotional) - commission;
-  }
-
-  private calcCommissionFromConfig(order: OrderImpl): number {
-    const brokerConfig = findBrokerConfig(this.configStore.config, order.broker);
-    return OrderImpl.calculateCommission(order.averageFilledPrice, order.filledSize, brokerConfig.commissionPercent);
+  private calcProfit(orders: OrderImpl[]): { profit: number; commission: number } {
+    const commission = _(orders).sumBy(o => {
+      const brokerConfig = findBrokerConfig(this.configStore.config, o.broker);
+      return OrderImpl.calculateCommission(o.averageFilledPrice, o.filledSize, brokerConfig.commissionPercent);
+    });
+    const profit = _(orders).sumBy(o => (o.side === OrderSide.Sell ? 1 : -1) * o.filledNotional) - commission;
+    return { profit, commission };
   }
 
   private async findClosable(quotes: Quote[]): Promise<string> {
-    const { minExitTargetProfit, minExitTargetProfitPercent } = this.configStore.config;
-    if (minExitTargetProfit === undefined && minExitTargetProfitPercent === undefined) {
-      return "";
+    const {
+      minExitTargetProfit,
+      minExitTargetProfitPercent,
+      exitNetProfitRatio
+    } = this.configStore.config;
+    if (
+      [minExitTargetProfit, minExitTargetProfitPercent, exitNetProfitRatio].every(
+        _.isUndefined
+      )
+    ) {
+      return '';
     }
     const activePairsMap = await this.activePairStore.getAll();
     this.printActivePairs(activePairsMap.map(kv => kv.value));
-    for (const { key, value } of activePairsMap.slice().reverse()) {
-      const pair = value;
+    for (const { key, value: pair } of activePairsMap.slice().reverse()) {
       try {
         this.log.debug(`Analyzing pair: ${pair}...`);
         const result = await this.spreadAnalyzer.analyze(quotes, this.positionService.positionMap, pair);
         this.log.debug(`pair: ${pair}, result: ${JSON.stringify(result)}.`);
-        const { bestBid, bestAsk, targetVolume, targetProfit } = result;
-        const targetVolumeNotional = _.mean([bestAsk.price, bestBid.price]) * targetVolume;
-        const effectiveMinExitTargetProfit = _.max([
-          minExitTargetProfit,
-          minExitTargetProfitPercent !== undefined
-            ? _.round(minExitTargetProfitPercent / 100 * targetVolumeNotional)
-            : Number.MIN_SAFE_INTEGER
-        ]) as number;
-        //
-        const commission = _([pair[0],pair[1]]).sumBy(o => this.calcCommissionFromConfig(o));
-        const pairProfit = _.round(this.calcProfit([pair[0],pair[1]],commission));
-        //
+        const effectiveMinExitTargetProfit = this.getEffectiveMinExitTargetProfit(result, pair);
         this.log.debug(`effectiveMinExitTargetProfit: ${effectiveMinExitTargetProfit}`);
-        //
-        this.log.info(`netProfit:${(targetProfit+pairProfit).toString()}`);
-        //
-        if (targetProfit + pairProfit >= effectiveMinExitTargetProfit) {
+        if (result.targetProfit >= effectiveMinExitTargetProfit) {
           this.lastSpreadAnalysisResult = result;
           return key;
         }
@@ -228,7 +220,27 @@ export default class ArbitragerImpl implements Arbitrager {
         this.log.debug(ex.message);
       }
     }
-    return "";
+    return '';
+  }
+
+  private getEffectiveMinExitTargetProfit(result: SpreadAnalysisResult, pair: OrderPair) {
+    const { bestBid, bestAsk, targetVolume } = result;
+    const targetVolumeNotional = _.mean([bestAsk.price, bestBid.price]) * targetVolume;
+    const {
+      minExitTargetProfit,
+      minExitTargetProfitPercent,
+      exitNetProfitRatio
+    } = this.configStore.config;
+    const openProfit = this.calcProfit(pair).profit;
+    return _.max([
+      minExitTargetProfit,
+      minExitTargetProfitPercent !== undefined
+        ? _.round(minExitTargetProfitPercent / 100 * targetVolumeNotional)
+        : Number.MIN_SAFE_INTEGER,
+      exitNetProfitRatio !== undefined
+        ? openProfit * (exitNetProfitRatio / 100 - 1)
+        : Number.MIN_SAFE_INTEGER
+    ]) as number;
   }
 
   private async sendOrder(quote: Quote, targetVolume: number, orderType: OrderType): Promise<OrderImpl> {
@@ -236,15 +248,15 @@ export default class ArbitragerImpl implements Arbitrager {
     const brokerConfig = findBrokerConfig(this.configStore.config, quote.broker);
     const { cashMarginType, leverageLevel } = brokerConfig;
     const orderSide = quote.side === QuoteSide.Ask ? OrderSide.Buy : OrderSide.Sell;
-    const order = new OrderImpl(
-      quote.broker,
-      orderSide,
-      targetVolume,
-      quote.price,
+    const order = new OrderImpl({
+      broker: quote.broker,
+      side: orderSide,
+      size: targetVolume,
+      price: quote.price,
       cashMarginType,
-      orderType,
+      type: orderType,
       leverageLevel
-    );
+    });
     await this.brokerAdapterRouter.send(order);
     return order;
   }
@@ -280,15 +292,16 @@ export default class ArbitragerImpl implements Arbitrager {
     }
     this.log.info(t`OpenPairs`);
     activePairs.forEach(pair => {
-      const commission = _([pair[0],pair[1]]).sumBy(o => this.calcCommissionFromConfig(o));
-      const profit = this.calcProfit([pair[0],pair[1]],commission);
-      this.log.info(`[${pair[0].toShortString()}, ${pair[1].toShortString()}, Profit:${_.round(profit)}]`);
+      this.log.info(
+        `[${pair[0].toShortString()}, ${pair[1].toShortString()}, Entry PL: ${_.round(
+          this.calcProfit(pair).profit
+        )} JPY]`
+      );
     });
   }
 
   private printProfit(orders: OrderImpl[]): void {
-    const commission = _(orders).sumBy(o => this.calcCommissionFromConfig(o));
-    const profit = this.calcProfit(orders, commission);
+    const { profit, commission } = this.calcProfit(orders);
     this.log.info(t`ProfitIs`, _.round(profit));
     if (commission !== 0) {
       this.log.info(t`CommissionIs`, _.round(commission));
