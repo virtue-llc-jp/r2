@@ -1,0 +1,74 @@
+{
+  "language": "ja",
+  "demoMode": false,
+  "priceMergeSize": 100,
+  "maxSize": 0.01,
+  "minSize": 0.01,
+  "minTargetProfit": 21,
+  "minTargetProfitPercent": 0.00, 
+  "minExitTargetProfit": 6,
+  "maxTargetVolumePercent": 30.0,
+  "iterationInterval": 3000,
+  "positionRefreshInterval": 3000,
+  "sleepAfterSend": 5000,
+  "maxNetExposure": 0.03,
+  "maxRetryCount": 7,
+  "orderStatusCheckInterval": 3000,
+  "maxTargetProfitPercent": 40.00,
+  "exitNetProfitRatio": 20.00,
+  "onSingleLeg": {
+    "action": "Reverse",
+    "actionOnExit": "Proceed",
+    "options": {
+      "limitMovePercent": 1,
+      "ttl": 3000
+    }
+  },
+  "brokers": [
+    {
+      "broker": "Coincheck",
+      "enabled": true,
+      "key": "e0h53gNg3KofSQHE",
+      "secret": "vfMUKUqz_M3-j5Tq5GCxwwukGb50G30R",
+      "maxLongPosition": 0.00,
+      "maxShortPosition": 0.09,
+      "cashMarginType": "NetOut",
+      "commissionPercent": 0.025
+    },
+    {
+      "broker": "Bitflyer",
+      "enabled": true,
+      "key": "NXCJ58Su9k5XzAJBwSYr33",
+      "secret": "HJ3TRciyFcHQHDcFJtGG++0fSH7njB42VT1qcjy0aJc=",
+      "maxLongPosition": 0.07,
+      "maxShortPosition": 0,
+      "cashMarginType": "Cash",
+      "commissionPercent": 0.07
+    },
+    {
+      "broker": "Quoine",
+      "enabled": true,
+      "key": "206913",
+      "secret": "tBRqxp1HPikL0ycgV3hXTseRkyoGHZm59Re4lAYQhaCrF6pgbc/k/BQCZCBn0FaHQffAvzyzq3YxZHjIrdPLIw==",
+      "maxLongPosition": 0.03,
+      "maxShortPosition": 0.00,
+      "cashMarginType": "Cash",
+      "leverageLevel": 10,
+      "commissionPercent": 0.00
+    }
+  ],
+  "logging": {
+    "slack": {
+      "enabled": false,
+      "url": "https://hooks.slack.com/services/xxxxxx",
+      "channel": "#ch1",
+      "username": "abc",
+      "keywords": ["error", "profit"]
+    },
+    "line": {
+      "enabled": true,
+      "token": "uYCDZcpVlVZWLb4b8NcmNzgkHthPz0xKf3GnsPxOt68",
+      "keywords": ["MaxNetExposureLimit"]
+    }
+  }
+}
