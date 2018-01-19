@@ -9,7 +9,7 @@ import { getLogger } from './logger';
 import * as _ from 'lodash';
 import t from './intl';
 import PositionService from './PositionService';
-import OrderImpl from './OrderImpl';
+import { calcProfit } from './pnl';
 
 export default class MainLimitChecker implements LimitChecker {
   private readonly log = getLogger(this.constructor.name);
@@ -80,10 +80,10 @@ class MinExitTargetProfitLimit implements LimitChecker {
 
   private getEffectiveMinExitTargetProfit() {
     const pair = this.orderPair;
-    const { bestBid, bestAsk, targetVolume } = this.spreadAnalysisResult;
-    const targetVolumeNotional = _.mean([bestAsk.price, bestBid.price]) * targetVolume;
+    const { bid, ask, targetVolume } = this.spreadAnalysisResult;
+    const targetVolumeNotional = _.mean([ask.price, bid.price]) * targetVolume;
     const { minExitTargetProfit, minExitTargetProfitPercent, exitNetProfitRatio } = this.configStore.config;
-    const openProfit = OrderImpl.calcProfit(pair, this.configStore.config).profit;
+    const openProfit = calcProfit(pair, this.configStore.config).profit;
     return _.max([
       minExitTargetProfit,
       minExitTargetProfitPercent !== undefined
@@ -137,8 +137,8 @@ class MinTargetProfitLimit implements LimitChecker {
 
   private isTargetProfitLargeEnough(): boolean {
     const config = this.configStore.config;
-    const { bestBid, bestAsk, targetVolume, targetProfit } = this.spreadAnalysisResult;
-    const targetVolumeNotional = _.mean([bestAsk.price, bestBid.price]) * targetVolume;
+    const { bid, ask, targetVolume, targetProfit } = this.spreadAnalysisResult;
+    const targetVolumeNotional = _.mean([ask.price, bid.price]) * targetVolume;
     const effectiveMinTargetProfit = _.max([
       config.minTargetProfit,
       config.minTargetProfitPercent !== undefined
@@ -164,11 +164,11 @@ class MaxTargetProfitLimit implements LimitChecker {
 
   private isProfitSmallerThanLimit(): boolean {
     const { config } = this.configStore;
-    const { bestBid, bestAsk, targetVolume, targetProfit } = this.spreadAnalysisResult;
+    const { bid, ask, targetVolume, targetProfit } = this.spreadAnalysisResult;
     const maxTargetProfit = _.min([
       config.maxTargetProfit,
       config.maxTargetProfitPercent !== undefined
-        ? _.round(config.maxTargetProfitPercent / 100 * _.mean([bestAsk.price, bestBid.price]) * targetVolume)
+        ? _.round(config.maxTargetProfitPercent / 100 * _.mean([ask.price, bid.price]) * targetVolume)
         : Number.MAX_SAFE_INTEGER
     ]) as number;
     return targetProfit <= maxTargetProfit;

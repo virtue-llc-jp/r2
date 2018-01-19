@@ -1,7 +1,6 @@
 import { getLogger } from './logger';
 import { injectable, inject } from 'inversify';
 import * as _ from 'lodash';
-import OrderImpl from './OrderImpl';
 import { ConfigStore, SpreadAnalysisResult, ActivePairStore, Quote, OrderPair } from './types';
 import t from './intl';
 import { padEnd } from './util';
@@ -10,6 +9,7 @@ import PositionService from './PositionService';
 import SpreadAnalyzer from './SpreadAnalyzer';
 import LimitCheckerFactory from './LimitCheckerFactory';
 import { EventEmitter } from 'events';
+import { calcProfit } from './pnl';
 
 @injectable()
 export default class OppotunitySearcher extends EventEmitter {
@@ -31,7 +31,7 @@ export default class OppotunitySearcher extends EventEmitter {
 
   async search(
     quotes: Quote[]
-  ): Promise<{ found: boolean; spreadAnalysisResult?: SpreadAnalysisResult; closable?: boolean }> {
+  ): Promise<{ found: false } | { found: true; spreadAnalysisResult: SpreadAnalysisResult; closable: boolean }> {
     this.log.info(t`LookingForOpportunity`);
     const { closable, key: closablePairKey, exitAnalysisResult } = await this.findClosable(quotes);
     if (closable) {
@@ -98,14 +98,14 @@ export default class OppotunitySearcher extends EventEmitter {
 
   private formatPair(pair: OrderPair) {
     return `[${pair[0].toShortString()}, ${pair[1].toShortString()}, Entry PL: ${_.round(
-      OrderImpl.calcProfit(pair, this.configStore.config).profit
+      calcProfit(pair, this.configStore.config).profit
     )} JPY]`;
   }
 
   private printSpreadAnalysisResult(result: SpreadAnalysisResult) {
     const columnWidth = 17;
-    this.log.info('%s: %s', padEnd(t`BestAsk`, columnWidth), result.bestAsk.toString());
-    this.log.info('%s: %s', padEnd(t`BestBid`, columnWidth), result.bestBid.toString());
+    this.log.info('%s: %s', padEnd(t`BestAsk`, columnWidth), result.ask.toString());
+    this.log.info('%s: %s', padEnd(t`BestBid`, columnWidth), result.bid.toString());
     this.log.info('%s: %s', padEnd(t`Spread`, columnWidth), -result.invertedSpread);
     this.log.info('%s: %s', padEnd(t`AvailableVolume`, columnWidth), result.availableVolume);
     this.log.info('%s: %s', padEnd(t`TargetVolume`, columnWidth), result.targetVolume);
