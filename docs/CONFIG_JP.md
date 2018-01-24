@@ -22,6 +22,7 @@
 |maxRetryCount|number|裁定取引のオーダーを送信後、注文の約定状態をチェックする最大回数。|
 |orderStatusCheckInterval|Millisecond|裁定取引の注文を送信後、注文の約定状態をチェックするインターバル。|
 |onSingleLeg|-|下記「onSingleLeg設定詳細」参照|
+|analytics|-|[ANALYTICS_PLUGIN_JP.md](https://github.com/bitrinjani/r2/blob/master/docs/ANALYTICS_PLUGIN_JP.md)を参照|
 
 *minTargetProfitPercentの例:
 minTargetProfitPercent: 0.1%
@@ -64,6 +65,7 @@ onSingleLeg設定で裁定ペアの片側だけ約定したときの動作を指
 |Name|Values|Description|
 |----|------|-----------|
 |broker|Bitflyer, Quoine or Coincheck|取引所名|
+|npmPath|string|npmパッケージ名。(プラグインで取引所を追加するときのみ)|
 |enabled|true or false|裁定取引の対象とするかどうかの設定|
 |key|string|取引所APIのキーもしくはトークン|
 |secret|string|取引所APIのシークレット|
