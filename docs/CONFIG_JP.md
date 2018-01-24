@@ -22,12 +22,13 @@
 |maxRetryCount|number|裁定取引のオーダーを送信後、注文の約定状態をチェックする最大回数。|
 |orderStatusCheckInterval|Millisecond|裁定取引の注文を送信後、注文の約定状態をチェックするインターバル。|
 |onSingleLeg|-|下記「onSingleLeg設定詳細」参照|
+|analytics|-|[ANALYTICS_PLUGIN_JP.md](https://github.com/bitrinjani/r2/blob/master/docs/ANALYTICS_PLUGIN_JP.md)を参照|
 
 *minTargetProfitPercentの例:
 minTargetProfitPercent: 0.1%
 ベストアスク: 800,000円, 0.3 BTC
 ベストビッド: 801,000円, 0.2 BTC
--> MID: 800,500円, 期待収益1,000円、目標数量0.2 BTCとなり、収益の割合は1000 / (800500 * 0.2) = 0.0062、つまり0.62%。
+-> MID: 800,500円, 目標数量0.2BTC,期待収益200円となり、収益の割合は 200 / (800500 * 0.2) = 0.0012、つまり0.12%。
 この値はminTargetProfitPercentである0.1%を上回っているので、取引を送信します。
 
 *ここでのネットエクスポージャーとは、各取引所のポジションを合計した"BTC数量"です。一般にはエクスポージャーには数量ではなく割合を指しますが、簡略化のため数量としています。例えば、Bitflyerで0.1 BTC, Quoineで0.1 BTC, Coincheckでマイナス0.1 BTC(空売り)のとき、ネットエクスポージャーは 0.1 + 0.1 - 0.1 = 0.1 BTCとなります。仮にMaxNetExposure=0.05と設定されていた場合、0.1 > 0.05のため取引は送信しません。
@@ -64,6 +65,7 @@ onSingleLeg設定で裁定ペアの片側だけ約定したときの動作を指
 |Name|Values|Description|
 |----|------|-----------|
 |broker|Bitflyer, Quoine or Coincheck|取引所名|
+|npmPath|string|npmパッケージ名。(プラグインで取引所を追加するときのみ)|
 |enabled|true or false|裁定取引の対象とするかどうかの設定|
 |key|string|取引所APIのキーもしくはトークン|
 |secret|string|取引所APIのシークレット|
@@ -89,6 +91,7 @@ CoincheckのcashMarginTypeをNetOutに設定すると、裁定プロセスはオ
 取引を禁止する期間を ["開始時間", "終了時間"] の形式で記述します。その期間、その取引所からの価格配信を除外し価格が配信されていないものとみなします。例えば、bitFlyerの定期メンテナンス時間を除外するために利用できます。
 
 - 例: 一つだけの期間4:00-4:15を禁止したい場合
+
 ```json
     {
       "broker": "Bitflyer",
@@ -98,6 +101,7 @@ CoincheckのcashMarginTypeをNetOutに設定すると、裁定プロセスはオ
 ```
 
 - 例: 複数の期間を禁止したい場合
+
 ```json
     {
       "broker": "Bitflyer",

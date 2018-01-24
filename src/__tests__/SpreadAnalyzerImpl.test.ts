@@ -3,7 +3,7 @@ import SpreadAnalyzer from '../SpreadAnalyzer';
 import { Broker, QuoteSide, ConfigStore } from '../types';
 import * as _ from 'lodash';
 import Quote from '../types';
-import { options } from '../logger';
+import { options } from '@bitr/logger';
 import { toQuote } from '../util';
 options.enabled = false;
 
@@ -220,5 +220,28 @@ describe('Spread Analyzer', () => {
     const target = new SpreadAnalyzer(configStore);
     const spreadStat = await target.getSpreadStat(quotes);
     expect(spreadStat).not.toBeUndefined();
+  });
+
+  test('analyze with maxTargetVolumePercent definition', async () => {
+    config.minSize = 0.5;
+    config.maxTargetVolumePercent = 25.0;
+    config.brokers[2].commissionPercent = 0.0;
+    const quotes = [
+      toQuote('Coincheck', QuoteSide.Ask, 300000, 1),
+      toQuote('Coincheck', QuoteSide.Bid, 200000, 2),
+      toQuote('Quoine', QuoteSide.Ask, 350000, 3),
+      toQuote('Quoine', QuoteSide.Bid, 360000, 4)
+    ];
+    const target = new SpreadAnalyzer(configStore);
+    const result = await target.analyze(quotes, positionMap);
+    expect(result.ask.broker).toBe('Quoine');
+    expect(result.ask.price).toBe(350000);
+    expect(result.ask.volume).toBe(3);
+    expect(result.bid.broker).toBe('Quoine');
+    expect(result.bid.price).toBe(360000);
+    expect(result.bid.volume).toBe(4);
+    expect(result.invertedSpread).toBe(10000);
+    expect(result.targetVolume).toBe(0.5);
+    expect(result.targetProfit).toBe(5000);
   });
 });
