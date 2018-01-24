@@ -36,8 +36,10 @@ async function main() {
   // coincheck cash balance
   if (ccConfig.enabled) {
     const ccBalance = await ccApi.getAccountsBalance();
-    process.stdout.write(`Coincheck, JPY, Cash, ${_.round(ccBalance.jpy)}\n`);
-    process.stdout.write(`Coincheck, BTC, Cash, ${ccBalance.btc}\n`);
+    if(0){
+      process.stdout.write(`Coincheck, JPY, Cash, ${_.round(ccBalance.jpy)}\n`);
+      process.stdout.write(`Coincheck, BTC, Cash, ${ccBalance.btc}\n`);
+    }
 
     // coincheck margin balance
     const ccLeverageBalance = await ccApi.getLeverageBalance();
@@ -56,13 +58,15 @@ async function main() {
     const quBtcCash = quCashBalance.find(b => b.currency === 'BTC') as AccountBalance;
     process.stdout.write(`Quoine, JPY, Cash, ${_.round(quJpyCash.balance)}\n`);
     process.stdout.write(`Quoine, BTC, Cash, ${quBtcCash.balance}\n`);
-
+    
     // quoine margin balance
     const quBalance = await quApi.getTradingAccounts();
     const quBtcJpyBalance = quBalance.find(x => x.currency_pair_code === 'BTCJPY') as TradingAccount;
-    process.stdout.write(`Quoine, JPY, Margin, ${_.round(quBtcJpyBalance.balance)}\n`);
-    process.stdout.write(`Quoine, JPY, Free Margin, ${_.round(quBtcJpyBalance.free_margin)}\n`);
-    process.stdout.write(`Quoine, BTC, Leverage Position, ${quBtcJpyBalance.position}\n`);
+    if(0){
+      process.stdout.write(`Quoine, JPY, Margin, ${_.round(quBtcJpyBalance.balance)}\n`);
+      process.stdout.write(`Quoine, JPY, Free Margin, ${_.round(quBtcJpyBalance.free_margin)}\n`);
+      process.stdout.write(`Quoine, BTC, Leverage Position, ${quBtcJpyBalance.position}\n`);
+    }
   }
 }
 
