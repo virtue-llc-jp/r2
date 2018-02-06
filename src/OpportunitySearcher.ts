@@ -99,11 +99,11 @@ export default class OppotunitySearcher extends EventEmitter {
     const midNotional = _.mean([buyLeg.averageFilledPrice, sellLeg.averageFilledPrice]) * buyLeg.filledSize;
     const entryProfitRatio = _.round(entryProfit / midNotional * 100, LOT_MIN_DECIMAL_PLACE);
     if (exitAnalysisResult) {
-      return `[${pair[0].toShortString()}, ${pair[1].toShortString()}, Entry PL: ${_.round(
+      return `[${pair[0].toShortString()}, ${pair[1].toShortString()}, PL: ${_.round(
         entryProfit
-      )} JPY (${entryProfitRatio}%), Current exit cost: ${_.round(-exitAnalysisResult.targetProfit)} JPY]`;
+      )} JPY (${entryProfitRatio}%), exit: ${_.round(-exitAnalysisResult.targetProfit)} JPY]`;
     }
-    return `[${pair[0].toShortString()}, ${pair[1].toShortString()}, Entry PL: ${_.round(
+    return `[${pair[0].toShortString()}, ${pair[1].toShortString()}, PL: ${_.round(
       entryProfit
     )} JPY (${entryProfitRatio}%)]`;
   }
