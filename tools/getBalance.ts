@@ -24,6 +24,11 @@ async function main() {
   // csv header
   process.stdout.write('Exchange, Currency, Type, Amount\n');
 
+  var allBalance = 0;
+  var allCash = 0;
+  var allBtc = 0;
+  var btcRate = 0;
+
   // bitflyer cash balance
   if (bfConfig.enabled) {
     const bfBalance = await bfApi.getBalance();
@@ -36,19 +41,27 @@ async function main() {
   // coincheck cash balance
   if (ccConfig.enabled) {
     const ccBalance = await ccApi.getAccountsBalance();
-    if(0){
+    if (ccBalance.jpy){
       process.stdout.write(`Coincheck, JPY, Cash, ${_.round(ccBalance.jpy)}\n`);
+    }
+    if (ccBalance.btc){
       process.stdout.write(`Coincheck, BTC, Cash, ${ccBalance.btc}\n`);
     }
-
+    
     // coincheck margin balance
     const ccLeverageBalance = await ccApi.getLeverageBalance();
     process.stdout.write(`Coincheck, JPY, Margin, ${_.round(ccLeverageBalance.margin.jpy)}\n`);
-    process.stdout.write(`Coincheck, JPY, Free Margin, ${_.round(ccLeverageBalance.margin_available.jpy)}\n`);
+    if(0){
+      process.stdout.write(`Coincheck, JPY, Free Margin, ${_.round(ccLeverageBalance.margin_available.jpy)}\n`);
+    }
     const positions = await ccApi.getAllOpenLeveragePositions();
     const longPosition = _.sumBy(positions.filter(p => p.side === 'buy'), p => p.amount);
     const shortPosition = _.sumBy(positions.filter(p => p.side === 'sell'), p => p.amount);
-    process.stdout.write(`Coincheck, BTC, Leverage Position, ${longPosition - shortPosition}\n`);
+    if(0){
+      process.stdout.write(`Coincheck, BTC, Leverage Position, ${longPosition - shortPosition}\n`);
+    }
+    allCash += _.round(ccBalance.jpy + ccLeverageBalance.margin.jpy);
+    allBtc += ccBalance.btc;
   }
 
   if (quConfig.enabled) {
@@ -58,16 +71,31 @@ async function main() {
     const quBtcCash = quCashBalance.find(b => b.currency === 'BTC') as AccountBalance;
     process.stdout.write(`Quoine, JPY, Cash, ${_.round(quJpyCash.balance)}\n`);
     process.stdout.write(`Quoine, BTC, Cash, ${quBtcCash.balance}\n`);
-    
+
     // quoine margin balance
     const quBalance = await quApi.getTradingAccounts();
     const quBtcJpyBalance = quBalance.find(x => x.currency_pair_code === 'BTCJPY') as TradingAccount;
     if(0){
       process.stdout.write(`Quoine, JPY, Margin, ${_.round(quBtcJpyBalance.balance)}\n`);
-      process.stdout.write(`Quoine, JPY, Free Margin, ${_.round(quBtcJpyBalance.free_margin)}\n`);
+      process.stdout.write(`Quoine, JPY, Free Margin, ${_.round(quBtcJpyBalance.free_margin)}\n`);  
       process.stdout.write(`Quoine, BTC, Leverage Position, ${quBtcJpyBalance.position}\n`);
     }
+
+    // quioine btc rate
+    try{
+      const quPriceLevels = await quApi.getPriceLevels();
+      const asks = quPriceLevels.buy_price_levels;
+      btcRate = asks[0][0];
+      allCash += quJpyCash.balance;
+      allBtc += quBtcCash.balance;
+    } catch(ex){
+      process.stdout.write(`Failire Get Price`);
+    }
+
+    
   }
+  allBalance = _.round(allCash + (allBtc * btcRate))
+  process.stdout.write(`All, JPY, Estimate, ${allBalance}\n`);
 }
 
 main();
