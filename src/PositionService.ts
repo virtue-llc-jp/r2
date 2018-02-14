@@ -3,10 +3,11 @@ import { ConfigStore, BrokerConfig, BrokerMap, BrokerPosition } from './types';
 import { getLogger } from '@bitr/logger';
 import * as _ from 'lodash';
 import Decimal from 'decimal.js';
-import BrokerPositionImpl from './BrokerPositionImpl';
-import { hr, eRound } from './util';
+import { hr, eRound, splitSymbol, padEnd, padStart } from './util';
 import symbols from './symbols';
 import BrokerAdapterRouter from './BrokerAdapterRouter';
+import BrokerStabilityTracker from './BrokerStabilityTracker';
+import t from './intl';
 
 @injectable()
 export default class PositionService {
@@ -17,7 +18,8 @@ export default class PositionService {
 
   constructor(
     @inject(symbols.ConfigStore) private readonly configStore: ConfigStore,
-    private readonly brokerAdapterRouter: BrokerAdapterRouter
+    private readonly brokerAdapterRouter: BrokerAdapterRouter,
+    private readonly brokerStabilityTracker: BrokerStabilityTracker
   ) {}
 
   async start(): Promise<void> {
@@ -36,15 +38,25 @@ export default class PositionService {
   }
 
   print(): void {
+    const { baseCcy } = splitSymbol(this.configStore.config.symbol);
+    const isOk = b => (b ? 'OK' : 'NG');
+    const formatBrokerPosition = (brokerPosition: BrokerPosition) =>
+      `${padEnd(brokerPosition.broker, 10)}: ${padStart(_.round(brokerPosition.baseCcyPosition, 3), 6)} ${baseCcy}, ` +
+      `${t`LongAllowed`}: ${isOk(brokerPosition.longAllowed)}, ` +
+      `${t`ShortAllowed`}: ${isOk(brokerPosition.shortAllowed)}`;
+
     this.log.info(hr(21) + 'POSITION' + hr(21));
-    this.log.info(`Net Exposure: ${_.round(this.netExposure, 3)} BTC`);
-    _.each(this.positionMap, (position: BrokerPosition) => this.log.info(position.toString()));
+    this.log.info(`Net Exposure: ${_.round(this.netExposure, 3)} ${baseCcy}`);
+    _.each(this.positionMap, (position: BrokerPosition) => {
+      const stability = this.brokerStabilityTracker.stability(position.broker);
+      this.log.info(`${formatBrokerPosition(position)} (Stability: ${stability})`);
+    });
     this.log.info(hr(50));
     this.log.debug(JSON.stringify(this.positionMap));
   }
 
   get netExposure() {
-    return eRound(_.sumBy(_.values(this.positionMap), (p: BrokerPosition) => p.btc));
+    return eRound(_.sumBy(_.values(this.positionMap), (p: BrokerPosition) => p.baseCcyPosition));
   }
 
   get positionMap() {
@@ -77,22 +89,28 @@ export default class PositionService {
   }
 
   private async getBrokerPosition(brokerConfig: BrokerConfig, minSize: number): Promise<BrokerPosition> {
-    const currentBtc = await this.brokerAdapterRouter.getBtcPosition(brokerConfig.broker);
+    const { baseCcy } = splitSymbol(this.configStore.config.symbol);
+    const positions =  await this.brokerAdapterRouter.getPositions(brokerConfig.broker);
+    const baseCcyPosition = positions.get(baseCcy);
+    if (baseCcyPosition === undefined) {
+      throw new Error(`Unable to find base ccy position in ${brokerConfig.broker}. ${JSON.stringify([...positions])}`);
+    }
     const allowedLongSize = _.max([
       0,
-      new Decimal(brokerConfig.maxLongPosition).minus(currentBtc).toNumber()
+      new Decimal(brokerConfig.maxLongPosition).minus(baseCcyPosition).toNumber()
     ]) as number;
     const allowedShortSize = _.max([
       0,
-      new Decimal(brokerConfig.maxShortPosition).plus(currentBtc).toNumber()
+      new Decimal(brokerConfig.maxShortPosition).plus(baseCcyPosition).toNumber()
     ]) as number;
-    const pos = new BrokerPositionImpl();
-    pos.broker = brokerConfig.broker;
-    pos.btc = currentBtc;
-    pos.allowedLongSize = allowedLongSize;
-    pos.allowedShortSize = allowedShortSize;
-    pos.longAllowed = new Decimal(allowedLongSize).gte(minSize);
-    pos.shortAllowed = new Decimal(allowedShortSize).gte(minSize);
-    return pos;
+    const isStable = this.brokerStabilityTracker.isStable(brokerConfig.broker);
+    return {
+      broker: brokerConfig.broker,
+      baseCcyPosition,
+      allowedLongSize,
+      allowedShortSize,
+      longAllowed: new Decimal(allowedLongSize).gte(minSize) && isStable,
+      shortAllowed: new Decimal(allowedShortSize).gte(minSize) && isStable
+    };
   }
 } /* istanbul ignore next */

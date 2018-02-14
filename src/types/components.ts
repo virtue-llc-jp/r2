@@ -9,6 +9,7 @@ export interface BrokerAdapter {
   refresh(order: Order): Promise<void>;
   cancel(order: Order): Promise<void>;
   getBtcPosition(): Promise<number>;
+  getPositions?: () => Promise<Map<string, number>>;
   fetchQuotes(): Promise<Quote[]>;
 }
 
@@ -53,7 +54,7 @@ export interface BrokerPosition {
   broker: Broker;
   longAllowed: boolean;
   shortAllowed: boolean;
-  btc: number;
+  baseCcyPosition: number;
   allowedLongSize: number;
   allowedShortSize: number;
 }

@@ -1,15 +1,17 @@
 import { getLogger } from '@bitr/logger';
 import { injectable, inject } from 'inversify';
 import * as _ from 'lodash';
-import { ConfigStore, SpreadAnalysisResult, ActivePairStore, Quote, OrderPair } from './types';
+import { ConfigStore, SpreadAnalysisResult, ActivePairStore, Quote, OrderPair, OrderSide } from './types';
 import t from './intl';
-import { padEnd } from './util';
+import { padEnd, formatQuote } from './util';
 import symbols from './symbols';
 import PositionService from './PositionService';
 import SpreadAnalyzer from './SpreadAnalyzer';
 import LimitCheckerFactory from './LimitCheckerFactory';
 import { EventEmitter } from 'events';
 import { calcProfit } from './pnl';
+import OrderImpl from './OrderImpl';
+import { LOT_MIN_DECIMAL_PLACE } from './constants';
 
 @injectable()
 export default class OppotunitySearcher extends EventEmitter {
@@ -69,11 +71,13 @@ export default class OppotunitySearcher extends EventEmitter {
       return { closable: false };
     }
     const activePairsMap = await this.activePairStore.getAll();
-    this.printActivePairs(activePairsMap.map(kv => kv.value));
-    for (const { key, value: pair } of activePairsMap.slice().reverse()) {
+    if (activePairsMap.length > 0) {
+      this.log.info(t`OpenPairs`);
+    }
+    for (const { key, value: pair } of activePairsMap) {
+      let exitAnalysisResult: SpreadAnalysisResult | undefined;
       try {
-        this.log.debug(`Analyzing pair: ${this.formatPair(pair)}...`);
-        const exitAnalysisResult = await this.spreadAnalyzer.analyze(quotes, this.positionService.positionMap, pair);
+        exitAnalysisResult = await this.spreadAnalyzer.analyze(quotes, this.positionService.positionMap, pair);
         this.log.debug(`pair: ${pair}, result: ${JSON.stringify(exitAnalysisResult)}.`);
         const limitResult = this.limitCheckerFactory.create(exitAnalysisResult, pair).check();
         if (limitResult.success) {
@@ -81,31 +85,33 @@ export default class OppotunitySearcher extends EventEmitter {
         }
       } catch (ex) {
         this.log.debug(ex.message);
+      } finally {
+        this.log.info(this.formatPairInfo(pair, exitAnalysisResult));
       }
     }
     return { closable: false };
   }
 
-  private printActivePairs(activePairs: OrderPair[]): void {
-    if (activePairs.length === 0) {
-      return;
+  private formatPairInfo(pair: OrderPair, exitAnalysisResult?: SpreadAnalysisResult) {
+    const entryProfit = calcProfit(pair, this.configStore.config).profit;
+    const buyLeg = pair.find(o => o.side === OrderSide.Buy) as OrderImpl;
+    const sellLeg = pair.find(o => o.side === OrderSide.Sell) as OrderImpl;
+    const midNotional = _.mean([buyLeg.averageFilledPrice, sellLeg.averageFilledPrice]) * buyLeg.filledSize;
+    const entryProfitRatio = _.round(entryProfit / midNotional * 100, LOT_MIN_DECIMAL_PLACE);
+    if (exitAnalysisResult) {
+      return `[${pair[0].toShortString()}, ${pair[1].toShortString()}, Entry PL: ${_.round(
+        entryProfit
+      )} JPY (${entryProfitRatio}%), Current exit cost: ${_.round(-exitAnalysisResult.targetProfit)} JPY]`;
     }
-    this.log.info(t`OpenPairs`);
-    activePairs.forEach(pair => {
-      this.log.info(this.formatPair(pair));
-    });
-  }
-
-  private formatPair(pair: OrderPair) {
     return `[${pair[0].toShortString()}, ${pair[1].toShortString()}, Entry PL: ${_.round(
-      calcProfit(pair, this.configStore.config).profit
-    )} JPY]`;
+      entryProfit
+    )} JPY (${entryProfitRatio}%)]`;
   }
 
   private printSpreadAnalysisResult(result: SpreadAnalysisResult) {
     const columnWidth = 17;
-    this.log.info('%s: %s', padEnd(t`BestAsk`, columnWidth), result.ask.toString());
-    this.log.info('%s: %s', padEnd(t`BestBid`, columnWidth), result.bid.toString());
+    this.log.info('%s: %s', padEnd(t`BestAsk`, columnWidth), formatQuote(result.ask));
+    this.log.info('%s: %s', padEnd(t`BestBid`, columnWidth), formatQuote(result.bid));
     this.log.info('%s: %s', padEnd(t`Spread`, columnWidth), -result.invertedSpread);
     this.log.info('%s: %s', padEnd(t`AvailableVolume`, columnWidth), result.availableVolume);
     this.log.info('%s: %s', padEnd(t`TargetVolume`, columnWidth), result.targetVolume);

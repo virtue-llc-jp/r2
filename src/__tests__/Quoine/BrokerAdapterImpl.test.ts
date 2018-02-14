@@ -68,7 +68,7 @@ describe('Quoine BrokerAdapter', () => {
 
   test('send wrong order type', async () => {
     const target = new BrokerAdapterImpl(brokerConfig);
-    const order = { broker: 'Quoine', symbol: 'BTCJPY', type: OrderType.StopLimit };
+    const order = { broker: 'Quoine', symbol: 'BTC/JPY', type: OrderType.StopLimit };
     try {
       await target.send(order);
     } catch (ex) {
@@ -81,7 +81,7 @@ describe('Quoine BrokerAdapter', () => {
     const target = new BrokerAdapterImpl(brokerConfig);
     const order = {
       broker: 'Quoine',
-      symbol: 'BTCJPY',
+      symbol: 'BTC/JPY',
       type: OrderType.Market,
       cashMarginType: CashMarginType.MarginOpen
     };
@@ -98,12 +98,6 @@ describe('Quoine BrokerAdapter', () => {
     const result = await target.fetchQuotes();
     expect(result.length).toBe(42);
     result.forEach(q => expect(q.broker).toBe('Quoine'));
-  });
-
-  test('fetchQuotes throws', async () => {
-    const target = new BrokerAdapterImpl(brokerConfig);
-    const result = await target.fetchQuotes();
-    expect(result.length).toBe(0);
   });
 
   test('getBtcPosition Margin', async () => {
@@ -154,7 +148,7 @@ describe('Quoine BrokerAdapter', () => {
   test('refresh not filled', async () => {
     const target = new BrokerAdapterImpl(brokerConfig);
     const order = {
-      symbol: 'BTCJPY',
+      symbol: 'BTC/JPY',
       type: 'Limit',
       timeInForce: 'None',
       id: 'b28eaefe-84d8-4110-9917-0e9d5793d7eb',
@@ -178,7 +172,7 @@ describe('Quoine BrokerAdapter', () => {
   test('refresh partially filled', async () => {
     const target = new BrokerAdapterImpl(brokerConfig);
     const order = {
-      symbol: 'BTCJPY',
+      symbol: 'BTC/JPY',
       type: 'Limit',
       timeInForce: 'None',
       id: 'b28eaefe-84d8-4110-9917-0e9d5793d7eb',
@@ -202,7 +196,7 @@ describe('Quoine BrokerAdapter', () => {
   test('refresh', async () => {
     const target = new BrokerAdapterImpl(brokerConfig);
     const order = {
-      symbol: 'BTCJPY',
+      symbol: 'BTC/JPY',
       type: 'Limit',
       timeInForce: 'None',
       id: 'b28eaefe-84d8-4110-9917-0e9d5793d7eb',
@@ -226,7 +220,7 @@ describe('Quoine BrokerAdapter', () => {
   test('cancel', async () => {
     const target = new BrokerAdapterImpl(brokerConfig);
     const order = {
-      symbol: 'BTCJPY',
+      symbol: 'BTC/JPY',
       type: 'Limit',
       timeInForce: 'None',
       id: 'b28eaefe-84d8-4110-9917-0e9d5793d7eb',

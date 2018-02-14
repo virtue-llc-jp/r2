@@ -8,7 +8,7 @@ import symbols from './symbols';
 import { fatalErrors } from './constants';
 import QuoteAggregator from './QuoteAggregator';
 import PositionService from './PositionService';
-import OppotunitySearcher from './OpportunitySearcher';
+import OpportunitySearcher from './OpportunitySearcher';
 import PairTrader from './PairTrader';
 
 @injectable()
@@ -16,12 +16,13 @@ export default class Arbitrager {
   private readonly log = getLogger(this.constructor.name);
   private shouldStop: boolean = false;
   status: string = 'Init';
+  private handlerRef: (quotes: Quote[]) => Promise<void>;
 
   constructor(
     private readonly quoteAggregator: QuoteAggregator,
     @inject(symbols.ConfigStore) private readonly configStore: ConfigStore,
     private readonly positionService: PositionService,
-    private readonly opportunitySearcher: OppotunitySearcher,
+    private readonly opportunitySearcher: OpportunitySearcher,
     private readonly pairTrader: PairTrader
   ) {
     this.opportunitySearcher.on('status', x => (this.status = x));
@@ -31,7 +32,8 @@ export default class Arbitrager {
   async start(): Promise<void> {
     this.status = 'Starting';
     this.log.info(t`StartingArbitrager`);
-    this.quoteAggregator.onQuoteUpdated.set(this.constructor.name, quotes => this.quoteUpdated(quotes));
+    this.handlerRef = this.quoteUpdated.bind(this);
+    this.quoteAggregator.on('quoteUpdated', this.handlerRef);
     this.status = 'Started';
     this.log.info(t`StartedArbitrager`);
   }
@@ -39,9 +41,10 @@ export default class Arbitrager {
   async stop(): Promise<void> {
     this.status = 'Stopping';
     this.log.info('Stopping Arbitrager...');
-    this.quoteAggregator.onQuoteUpdated.delete(this.constructor.name);
+    this.quoteAggregator.removeListener('quoteUpdated', this.handlerRef);
     this.log.info('Stopped Arbitrager.');
     this.status = 'Stopped';
+    this.shouldStop = true;
   }
 
   private async quoteUpdated(quotes: Quote[]): Promise<void> {

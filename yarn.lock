@@ -2,9 +2,47 @@
 # yarn lockfile v1
 
 
-"@bitr/castable@^1.0.1":
+"@bitr/awaitable-event-emitter@^1.0.3":
+  version "1.0.3"
+  resolved "https://registry.yarnpkg.com/@bitr/awaitable-event-emitter/-/awaitable-event-emitter-1.0.3.tgz#78d5e1057e9796934d0e82a07ed23bf5622060fa"
+  dependencies:
+    lodash "^4.17.4"
+
+"@bitr/bitbankcc-api@^1.0.3":
+  version "1.0.3"
+  resolved "https://registry.yarnpkg.com/@bitr/bitbankcc-api/-/bitbankcc-api-1.0.3.tgz#45b15a63b155b0e7a08ed278af8436f7cbee4e21"
+  dependencies:
+    "@bitr/castable" "^1.0.2"
+    axios "^0.17.1"
+    lodash "^4.17.4"
+
+"@bitr/bitbankcc@^1.0.5":
+  version "1.0.5"
+  resolved "https://registry.yarnpkg.com/@bitr/bitbankcc/-/bitbankcc-1.0.5.tgz#b2ba8db3efe94f588993c783b28a3bef69461619"
+  dependencies:
+    "@bitr/bitbankcc-api" "^1.0.3"
+    "@bitr/logger" "^1.0.0"
+    lodash "^4.17.4"
+
+"@bitr/bitflyer-fx@^1.0.4":
+  version "1.0.4"
+  resolved "https://registry.yarnpkg.com/@bitr/bitflyer-fx/-/bitflyer-fx-1.0.4.tgz#c7c7c1500bef289d9f3b88afffd41a420be7381b"
+  dependencies:
+    "@bitr/castable" "^1.0.2"
+    coveralls "^3.0.0"
+    lodash "^4.17.4"
+    node-fetch "^1.7.3"
+    pino "^4.10.2"
+
+"@bitr/castable@^1.0.2":
   version "1.0.2"
   resolved "https://registry.yarnpkg.com/@bitr/castable/-/castable-1.0.2.tgz#c41f7067f0afe815a8de78ff1d03045f6f8edf9a"
+  dependencies:
+    reflect-metadata "^0.1.10"
+
+"@bitr/castable@^1.0.3":
+  version "1.0.3"
+  resolved "https://registry.yarnpkg.com/@bitr/castable/-/castable-1.0.3.tgz#77ead4c0e64c23112751db60629f083d3a941210"
   dependencies:
     reflect-metadata "^0.1.10"
 
@@ -24,9 +62,9 @@
   dependencies:
     pino "4.10.3"
 
-"@bitr/zmq@^1.0.2":
-  version "1.0.2"
-  resolved "https://registry.yarnpkg.com/@bitr/zmq/-/zmq-1.0.2.tgz#c6ac887d5d0f3467dade1dc4dc665bb4c8e65476"
+"@bitr/zmq@^1.1.0":
+  version "1.1.1"
+  resolved "https://registry.yarnpkg.com/@bitr/zmq/-/zmq-1.1.1.tgz#412eb56eb47ad24d3efb208b381113e01410fd3b"
   dependencies:
     lodash "^4.17.4"
     zeromq "^4.6.0"
@@ -308,6 +346,13 @@ aws-sign2@~0.7.0:
 aws4@^1.2.1, aws4@^1.6.0:
   version "1.6.0"
   resolved "https://registry.yarnpkg.com/aws4/-/aws4-1.6.0.tgz#83ef5ca860b2b32e4a0deedee8c771b9db57471e"
+
+axios@^0.17.1:
+  version "0.17.1"
+  resolved "https://registry.yarnpkg.com/axios/-/axios-0.17.1.tgz#2d8e3e5d0bdbd7327f91bc814f5c57660f81824d"
+  dependencies:
+    follow-redirects "^1.2.5"
+    is-buffer "^1.1.5"
 
 babel-code-frame@^6.22.0, babel-code-frame@^6.26.0:
   version "6.26.0"
@@ -1110,6 +1155,12 @@ find-up@^2.0.0, find-up@^2.1.0:
 flatstr@^1.0.4, flatstr@^1.0.5:
   version "1.0.5"
   resolved "https://registry.yarnpkg.com/flatstr/-/flatstr-1.0.5.tgz#5b451b08cbd48e2eac54a2bbe0bf46165aa14be3"
+
+follow-redirects@^1.2.5:
+  version "1.4.1"
+  resolved "https://registry.yarnpkg.com/follow-redirects/-/follow-redirects-1.4.1.tgz#d8120f4518190f55aac65bb6fc7b85fcd666d6aa"
+  dependencies:
+    debug "^3.1.0"
 
 for-in@^1.0.1:
   version "1.0.2"

@@ -47,15 +47,16 @@ R2 works on any OS that supports Node.js, such as:
 - Linux
 
 #### Supported Exchanges
-R2 supports three exchanges operated in Japan.
+R2 supports the following exchanges.
 
 |Exchange|Cash|Margin|
 |----|------|-----------|
 |bitFlyer|✔️|✔️*|
 |Quoine|✔️|✔️|
 |Coincheck|✔️|✔️|
+|bitbank.cc|️️️✔️|| 
 
-*bitFlyer margin trading (BTC-FX/JPY) is available as a [broker plugin](https://github.com/bitrinjani/bitflyer-fx), not included in this repository.
+*bitFlyer margin trading (BTC-FX/JPY) is available as a [broker plugin](https://github.com/bitrinjani/bitflyer-fx).
 
 ## How it works
 1. Every 3 seconds, R2 downloads quotes from exchanges.
@@ -82,7 +83,7 @@ All configurations are stored in `config.json`.
 |Name|Values|Description|
 |----|------|-----------|
 |language|"ja" or "en"|UI language. Japanese or English.|
-|demoMode|true or false|If it's True, the arbitrager analyzes spreads but doesn't send any real trade.|
+|demoMode|true or false|If it's true, the arbitrager analyzes spreads but doesn't send any real trade.|
 |priceMergeSize|number|Merges small quotes into the specified price ladder before analyzing arbitrage opportunity.|
 |maxSize|number|Maximum BTC size to be sent to brokers.|
 |minSize|number|Minimum BTC size to be sent to brokers.|
@@ -97,8 +98,32 @@ All configurations are stored in `config.json`.
 |maxNetExposure|number|Maximum total net exposure. If net exposure qty is larger than this value, Arbitrager stops.| 
 |maxRetryCount|number|Maximum retry count to check if arbitrage orders are filled or not. If the orders are not filled after the retries, Arbitrager tries to cancel the orders and continues.|
 |orderStatusCheckInterval|Millisecond|Time lapse in milliseconds to check if arbitrage orders are filled or not.|
-|onSingleLeg|-|See onSingleLeg config|
-|analytics|-|See [ANALYTICS_PLUGIN_JP.md](https://github.com/bitrinjani/r2/blob/master/docs/ANALYTICS_PLUGIN_JP.md)|
+|stabilityTracker|-|See stabilityTracker config below|
+|onSingleLeg|-|See onSingleLeg config below|
+|analytics|-|See [ANALYTICS_PLUGIN.md](https://github.com/bitrinjani/r2/blob/master/docs/ANALYTICS_PLUGIN.md)|
+
+#### stabilityTracker config details
+
+R2 automatically disables trading activities on unstable brokers.
+
+- Each broker has its stability index on a scale of one to ten.
+- The initial stability index is 10.
+- The stability index is decremented each time a broker API call fails.
+- The stability index is incremented every time `recoveryInterval` milliseconds has passed.
+- R2 disables brokers which has smaller stability index than `threshold` value.
+
+By default, a broker which has failed three API calls within 5 minutes would be disabled for trading for at most 5 minutes.
+
+Default configuration:
+
+```json
+...
+  "stabilityTracker": {
+    "threshold": 8,
+    "recoveryInterval": 300000 
+  },
+...
+```
 
 #### onSingleLeg config details
 
@@ -229,6 +254,12 @@ All log files are saved under `logs` directory.
 |---------|-----------|
 |info.log|Standard log file|
 |debug.log|Verbose logging, including all REST HTTP requests and responses in JSON format|
+
+## Utility scripts
+
+Several utility scripts are available to close positions, show balances and clear cache.
+
+See [TOOLS.md](https://github.com/bitrinjani/r2/blob/master/docs/TOOLS.md)
 
 ## Running the tests
 `test` script runs [ts-jest](https://github.com/kulshekhar/ts-jest).
