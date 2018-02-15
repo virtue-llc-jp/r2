@@ -3,12 +3,12 @@ import { ConfigStore, BrokerConfig, QuoteSide, Broker, Quote } from './types';
 import { getLogger } from '@bitr/logger';
 import * as _ from 'lodash';
 import symbols from './symbols';
-import QuoteImpl from './QuoteImpl';
 import BrokerAdapterRouter from './BrokerAdapterRouter';
 import { DateTime, Interval } from 'luxon';
+import { AwaitableEventEmitter } from '@bitr/awaitable-event-emitter';
 
 @injectable()
-export default class QuoteAggregator {
+export default class QuoteAggregator extends AwaitableEventEmitter {
   private readonly log = getLogger(this.constructor.name);
   private timer;
   private isRunning: boolean;
@@ -17,7 +17,9 @@ export default class QuoteAggregator {
   constructor(
     @inject(symbols.ConfigStore) private readonly configStore: ConfigStore,
     private readonly brokerAdapterRouter: BrokerAdapterRouter
-  ) {}
+  ) {
+    super();
+  }
 
   async start(): Promise<void> {
     this.log.debug('Starting Quote Aggregator...');
@@ -35,8 +37,6 @@ export default class QuoteAggregator {
     }
     this.log.debug('Stopped Quote Aggregator.');
   }
-
-  onQuoteUpdated: Map<string, ((quotes: Quote[]) => Promise<void>)> = new Map();
 
   private async aggregate(): Promise<void> {
     if (this.isRunning) {
@@ -64,8 +64,7 @@ export default class QuoteAggregator {
     this.quotes = value;
     this.log.debug('New quotes have been set.');
     this.log.debug('Calling onQuoteUpdated...');
-    const handlerTasks = [...this.onQuoteUpdated.values()].map(handler => handler(this.quotes));
-    await Promise.all(handlerTasks);
+    await this.emitParallel('quoteUpdated', this.quotes);
     this.log.debug('onQuoteUpdated done.');
   }
 
@@ -99,15 +98,12 @@ export default class QuoteAggregator {
         const price = q.side === QuoteSide.Ask ? _.ceil(q.price / step) * step : _.floor(q.price / step) * step;
         return _.join([price, q.broker, QuoteSide[q.side]], '#');
       })
-      .map(
-        (value: Quote[], key) =>
-          new QuoteImpl(
-            value[0].broker,
-            value[0].side,
-            Number(key.substring(0, key.indexOf('#'))),
-            _.sumBy(value, q => q.volume)
-          )
-      )
+      .map((value: Quote[], key) => ({
+        broker: value[0].broker,
+        side: value[0].side,
+        price: Number(key.substring(0, key.indexOf('#'))),
+        volume: _.sumBy(value, q => q.volume)
+      }))
       .value();
   }
 } /* istanbul ignore next */

@@ -47,15 +47,16 @@ R2 works on any OS that supports Node.js, such as:
 - Linux
 
 #### Supported Exchanges
-R2 supports three exchanges operated in Japan.
+R2 supports the following exchanges.
 
 |Exchange|Cash|Margin|
 |----|------|-----------|
 |bitFlyer|✔️|✔️*|
 |Quoine|✔️|✔️|
 |Coincheck|✔️|✔️|
+|bitbank.cc|️️️✔️|| 
 
-*bitFlyer margin trading (BTC-FX/JPY) is available as a [broker plugin](https://github.com/bitrinjani/bitflyer-fx), not included in this repository.
+*bitFlyer margin trading (BTC-FX/JPY) is available as a [broker plugin](https://github.com/bitrinjani/bitflyer-fx).
 
 ## How it works
 1. Every 3 seconds, R2 downloads quotes from exchanges.
@@ -82,7 +83,7 @@ All configurations are stored in `config.json`.
 |Name|Values|Description|
 |----|------|-----------|
 |language|"ja" or "en"|UI language. Japanese or English.|
-|demoMode|true or false|If it's True, the arbitrager analyzes spreads but doesn't send any real trade.|
+|demoMode|true or false|If it's true, the arbitrager analyzes spreads but doesn't send any real trade.|
 |priceMergeSize|number|Merges small quotes into the specified price ladder before analyzing arbitrage opportunity.|
 |maxSize|number|Maximum BTC size to be sent to brokers.|
 |minSize|number|Minimum BTC size to be sent to brokers.|
