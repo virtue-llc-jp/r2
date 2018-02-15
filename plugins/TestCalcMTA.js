@@ -3,16 +3,18 @@ const ss = require('simple-statistics');
 const { getLogger } = require('@bitr/logger');
 
 const precision = 3;
+const sigma_power = 2.0; // 標準偏差の倍率
+const profit_ratio = 0.75; // 偏差のうちNetProfitとする割合
 
-class SimpleSpreadStatHandler {
+class TestCalcMTA {
   // Constructor is called when initial snapshot of spread stat history has arrived.
   constructor(history) {
     this.history = history; //historyを保存
     this.log = getLogger(this.constructor.name);
-    const profitPercentHistory = history.map(x => x.bestCase.profitPercentAgainstNotional);
-    this.sampleSize = profitPercentHistory.length;
-    this.profitPercentMean = this.sampleSize != 0 ? ss.mean(profitPercentHistory) : 0;
-    this.profitPercentVariance = this.sampleSize != 0 ? ss.variance(profitPercentHistory) : 0;
+    this.profitPercentHistory = this.history.map(x => x.bestCase.profitPercentAgainstNotional);
+    this.sampleSize = this.profitPercentHistory.length;
+    this.profitPercentMean = this.sampleSize != 0 ? ss.mean(this.profitPercentHistory) : 0;
+    this.profitPercentVariance = this.sampleSize != 0 ? ss.variance(this.profitPercentHistory) : 0;
   }
 
   // The method is called each time new spread stat has arrived, by default every 3 seconds.
@@ -21,28 +23,26 @@ class SimpleSpreadStatHandler {
   async handle(spreadStat) {
     this.history = _.tail(this.history);
     this.history.push(spreadStat);
-    
-    const newData = spreadStat.bestCase.profitPercentAgainstNotional;
-    // add new data to mean
-    this.profitPercentMean = ss.addToMean(this.profitPercentMean, this.sampleSize, newData);
-    // add new data to variance
-    this.profitPercentVariance = ss.combineVariances(
-      this.profitPercentVariance,
-      this.profitPercentMean,
-      this.sampleSize,
-      0,
-      newData,
-      1
-    );
-
-    this.sampleSize++;
+    this.profitPercentHistory = this.history.map(x => x.bestCase.profitPercentAgainstNotional);
+    this.profitPercentMean = this.sampleSize != 0 ? ss.mean(this.profitPercentHistory) : 0;
+    this.profitPercentVariance = this.sampleSize != 0 ? ss.variance(this.profitPercentHistory) : 0;
 
     // set μ + σ to minTargetProfitPercent
     const n = this.sampleSize;
     const mean = this.profitPercentMean;
     const standardDeviation = Math.sqrt(this.profitPercentVariance * n/(n-1));
-    const minTargetProfitPercent = _.round(mean + standardDeviation, precision);
-    if (_.isNaN(minTargetProfitPercent)) {
+    const minTargetProfitPercent = _.round(mean + (standardDeviation * sigma_power), precision);
+
+    // cost
+    
+
+    // exitNetProfitRation by standardDeviation 
+    const exitNetProfitRatio = _.round(
+      standardDeviation * sigma_power * profit_ratio / minTargetProfitPercent, precision
+    );
+
+    // error
+    if (_.isNaN(minTargetProfitPercent) || _.isNaN(exitNetProfitRatio)) {
       return undefined;
     }
     this.log.info(
@@ -51,9 +51,11 @@ class SimpleSpreadStatHandler {
         precision
       )}, n: ${n} => minTargetProfitPercent: ${minTargetProfitPercent}`
     );
-    const config = { minTargetProfitPercent };
+
+    // save config
+    const config = { minTargetProfitPercent, exitNetProfitRatio };
     return config;
   }
 }
 
-module.exports = SimpleSpreadStatHandler;
+module.exports = TestCalcMTA;
