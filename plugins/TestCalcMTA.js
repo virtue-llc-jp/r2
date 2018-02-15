@@ -7,6 +7,7 @@ const precision = 3;
 class SimpleSpreadStatHandler {
   // Constructor is called when initial snapshot of spread stat history has arrived.
   constructor(history) {
+    this.history = history; //historyを保存
     this.log = getLogger(this.constructor.name);
     const profitPercentHistory = history.map(x => x.bestCase.profitPercentAgainstNotional);
     this.sampleSize = profitPercentHistory.length;
@@ -18,6 +19,9 @@ class SimpleSpreadStatHandler {
   // Return value: part of ConfigRoot or undefined.
   // If part of ConfigRoot is returned, the configuration will be merged. If undefined is returned, no update will be made.
   async handle(spreadStat) {
+    this.history = _.tail(this.history);
+    this.history.push(spreadStat);
+    
     const newData = spreadStat.bestCase.profitPercentAgainstNotional;
     // add new data to mean
     this.profitPercentMean = ss.addToMean(this.profitPercentMean, this.sampleSize, newData);
