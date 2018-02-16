@@ -5,11 +5,12 @@ const { getLogger } = require('@bitr/logger');
 const precision = 3;
 const sigma_power = 2.0; // 標準偏差の倍率
 const profit_ratio = 0.75; // 偏差のうちNetProfitとする割合
+const takeSampleCount = 400; // 使用する直近のサンプル数
 
 class TestCalcMTA {
   // Constructor is called when initial snapshot of spread stat history has arrived.
   constructor(history) {
-    this.history = history; //historyを保存
+    this.history = _.takeRight(history, takeSampleCount); //historyを保存
     this.log = getLogger(this.constructor.name);
     this.profitPercentHistory = this.history.map(x => x.bestCase.profitPercentAgainstNotional);
     this.sampleSize = this.profitPercentHistory.length;
@@ -38,7 +39,7 @@ class TestCalcMTA {
 
     // exitNetProfitRation by standardDeviation 
     const exitNetProfitRatio = _.round(
-      standardDeviation * sigma_power * profit_ratio / minTargetProfitPercent, precision
+      standardDeviation * sigma_power * profit_ratio * 100 / minTargetProfitPercent, precision
     );
 
     // error
@@ -49,7 +50,7 @@ class TestCalcMTA {
       `μ: ${_.round(mean, precision)}, σ: ${_.round(
         standardDeviation,
         precision
-      )}, n: ${n} => minTargetProfitPercent: ${minTargetProfitPercent}`
+      )}, n: ${n} => minTPP: ${minTargetProfitPercent} eNetPR: ${exitNetProfitRatio}`
     );
 
     // save config
