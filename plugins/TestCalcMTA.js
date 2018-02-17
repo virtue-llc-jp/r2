@@ -3,9 +3,9 @@ const ss = require('simple-statistics');
 const { getLogger } = require('@bitr/logger');
 
 const precision = 3;
-const sigma_power = 2.0; // 標準偏差の倍率
-const profit_ratio = 0.75; // 偏差のうちNetProfitとする割合
-const takeSampleCount = 400; // 使用する直近のサンプル数
+const sigma_power = 2.3; // 標準偏差の倍率
+const profit_ratio = 0.50; // 偏差のうちNetProfitとする割合
+const takeSampleCount = 500; // 使用する直近のサンプル数
 
 class TestCalcMTA {
   // Constructor is called when initial snapshot of spread stat history has arrived.
