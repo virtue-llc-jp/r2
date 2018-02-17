@@ -10,6 +10,7 @@ yarn-debug.log*
 yarn-error.log*
 logs
 *.log
+*.bak
 coverage
 config.json
 .vscode
