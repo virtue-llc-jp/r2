@@ -3,9 +3,9 @@ const ss = require('simple-statistics');
 const { getLogger } = require('@bitr/logger');
 
 const precision = 3;
-const sigma_power = 2.3; // 標準偏差の倍率
+const sigma_power = 2.33; // 標準偏差の倍率
 const profit_ratio = 0.50; // 偏差のうちNetProfitとする割合
-const takeSampleCount = 500; // 使用する直近のサンプル数
+const takeSampleCount = 330; // 使用する直近のサンプル数
 
 class TestCalcMTA {
   // Constructor is called when initial snapshot of spread stat history has arrived.
@@ -13,9 +13,11 @@ class TestCalcMTA {
     this.history = _.takeRight(history, takeSampleCount); //historyを保存
     this.log = getLogger(this.constructor.name);
     this.profitPercentHistory = this.history.map(x => x.bestCase.profitPercentAgainstNotional);
+    this.worstPercentHistory = this.history.map(x => x.worstCase.profitPercentAgainstNotional);
     this.sampleSize = this.profitPercentHistory.length;
     this.profitPercentMean = this.sampleSize != 0 ? ss.mean(this.profitPercentHistory) : 0;
     this.profitPercentVariance = this.sampleSize != 0 ? ss.variance(this.profitPercentHistory) : 0;
+    this.worstPercentMean = this.sampleSiza != 0 ? ss.mean(this.worstPercentHistory) : 0;
   }
 
   // The method is called each time new spread stat has arrived, by default every 3 seconds.
@@ -25,17 +27,19 @@ class TestCalcMTA {
     this.history = _.tail(this.history);
     this.history.push(spreadStat);
     this.profitPercentHistory = this.history.map(x => x.bestCase.profitPercentAgainstNotional);
+    this.worstPercentHistory = this.history.map(x => x.worstCase.profitPercentAgainstNotional);
     this.profitPercentMean = this.sampleSize != 0 ? ss.mean(this.profitPercentHistory) : 0;
     this.profitPercentVariance = this.sampleSize != 0 ? ss.variance(this.profitPercentHistory) : 0;
+    this.worstPercentMean = this.sampleSiza != 0 ? ss.mean(this.worstPercentHistory) : 0;
 
     // set μ + σ to minTargetProfitPercent
     const n = this.sampleSize;
     const mean = this.profitPercentMean;
+    const worstMean = this.worstPercentMean;
     const standardDeviation = Math.sqrt(this.profitPercentVariance * n/(n-1));
-    const minTargetProfitPercent = _.round(mean + (standardDeviation * sigma_power), precision);
-
-    // cost
-    
+    const minTargetProfitPercent = _.round(
+      ((mean + (standardDeviation * sigma_power)) - (3 * worstMean)) / 4,
+       precision);
 
     // exitNetProfitRation by standardDeviation 
     const exitNetProfitRatio = _.round(
