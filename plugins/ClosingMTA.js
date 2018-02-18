@@ -3,7 +3,7 @@ const ss = require('simple-statistics');
 const { getLogger } = require('@bitr/logger');
 
 const precision = 3;
-const sigma_power = 3.0; // 標準偏差の倍率
+const sigma_power = 5.0; // 標準偏差の倍率
 const profit_ratio = 0.01; // 偏差のうちNetProfitとする割合
 const takeSampleCount = 500; // 使用する直近のサンプル数
 
@@ -38,7 +38,7 @@ class TestCalcMTA {
     const worstMean = this.worstPercentMean;
     const standardDeviation = Math.sqrt(this.profitPercentVariance * n/(n-1));
     const minTargetProfitPercent = _.round(
-      ((mean + (standardDeviation * sigma_power)) - (3 * worstMean)) / 4,
+      ((mean + (standardDeviation * sigma_power)) - worstMean) / 2,
        precision);
 
     // exitNetProfitRation by standardDeviation 
