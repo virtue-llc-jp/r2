@@ -18,7 +18,7 @@ class TestCalcMTA {
     this.profitPercentMean = this.sampleSize != 0 ? ss.mean(this.profitPercentHistory) : 0;
     this.profitPercentVariance = this.sampleSize != 0 ? ss.variance(this.profitPercentHistory) : 0;
     this.worstPercentMean = this.sampleSiza != 0 ? ss.mean(this.worstPercentHistory) : 0;
-    this.slowStart = takeSampleCount;
+    this.slowStart = takeSampleCount / 2;
   }
 
   // The method is called each time new spread stat has arrived, by default every 3 seconds.
@@ -46,7 +46,7 @@ class TestCalcMTA {
 
     // Beggining Protection
     if (this.slowStart > 0) {
-      minTargetProfitPercent += this.slowStart * 0.1;
+      minTargetProfitPercent += this.slowStart * 0.05;
       this.slowStart--;
     }
 
