@@ -18,6 +18,7 @@ class TestCalcMTA {
     this.profitPercentMean = this.sampleSize != 0 ? ss.mean(this.profitPercentHistory) : 0;
     this.profitPercentVariance = this.sampleSize != 0 ? ss.variance(this.profitPercentHistory) : 0;
     this.worstPercentMean = this.sampleSiza != 0 ? ss.mean(this.worstPercentHistory) : 0;
+    this.slowStart = takeSampleCount / 2;
   }
 
   // The method is called each time new spread stat has arrived, by default every 3 seconds.
@@ -37,9 +38,14 @@ class TestCalcMTA {
     const mean = this.profitPercentMean;
     const worstMean = this.worstPercentMean;
     const standardDeviation = Math.sqrt(this.profitPercentVariance * n/(n-1));
-    const minTargetProfitPercent = _.round(
-      ((mean + (standardDeviation * sigma_power)) - worstMean) / 2,
-       precision);
+    let minTargetProfitPercent = _.round(
+      ((mean + (standardDeviation * sigma_power)) - worstMean) / 2, precision);
+
+    // Beggining Protection
+    if (this.slowStart > 0) {
+      minTargetProfitPercent += this.slowStart * 0.05;
+      this.slowStart--;
+    }
 
     // exitNetProfitRation by standardDeviation 
     const exitNetProfitRatio = _.round(
