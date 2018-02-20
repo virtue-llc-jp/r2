@@ -3,9 +3,9 @@ const ss = require('simple-statistics');
 const { getLogger } = require('@bitr/logger');
 
 const precision = 3;
-const sigma_power = 2.33; // 標準偏差の倍率
-const profit_ratio = 0.25; // 偏差のうちNetProfitとする割合
-const takeSampleCount = 330; // 使用する直近のサンプル数
+const sigma_power = 2.00; // 標準偏差の倍率(σ->68.3% 2σ->95.45% 2.33σ->99% 3σ->99.7%)
+const profit_ratio = 0.66; // 偏差のうちNetProfitとする割合
+const takeSampleCount = 330; // 使用する直近のサンプル数(aprox *3s)
 
 class TestCalcMTA {
   // Constructor is called when initial snapshot of spread stat history has arrived.
@@ -40,20 +40,21 @@ class TestCalcMTA {
     const standardDeviation = Math.sqrt(this.profitPercentVariance * n/(n-1));
     const stdThreshold = mean + (standardDeviation * sigma_power);
     const worstThreshold = -1 * worstMean;
+
+    // at least keep worstProfitMean 
     const Threshold = worstThreshold > stdThreshold ? worstThreshold : stdThreshold;
     
     let minTargetProfitPercent = _.round(Threshold, precision);
-
-    // Beggining Protection
-    if (this.slowStart > 0) {
-      minTargetProfitPercent += this.slowStart * 0.05;
-      this.slowStart--;
-    }
 
     // exitNetProfitRation by standardDeviation 
     const exitNetProfitRatio = _.round(
       standardDeviation * sigma_power * profit_ratio * 100 / minTargetProfitPercent, precision
     );
+
+    // Slow start Protection
+    if (this.slowStart > 0) {
+      minTargetProfitPercent += _.round(this.slowStart-- * 0.02, precision);
+    }
 
     // error
     if (_.isNaN(minTargetProfitPercent) || _.isNaN(exitNetProfitRatio)) {
