@@ -53,7 +53,7 @@ class TestCalcMTA {
 
     // Slow start Protection
     if (this.slowStart > 0) {
-      minTargetProfitPercent += _.round(this.slowStart-- * 0.02, precision);
+      minTargetProfitPercent = _.round( minTargetProfitPercent + (this.slowStart-- * 0.02), precision);
     }
 
     // error
