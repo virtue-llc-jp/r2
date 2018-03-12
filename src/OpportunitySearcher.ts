@@ -127,15 +127,6 @@ export default class OppotunitySearcher extends EventEmitter {
     let currentExitCostRatio;
     let currentExitNetProfitRatio;
     if (exitAnalysisResult) {
-<<<<<<< HEAD
-      return `[${pair[0].toShortString()}, ${pair[1].toShortString()}, PL: ${_.round(
-        entryProfit
-      )} JPY (${entryProfitRatio}%), exit: ${_.round(-exitAnalysisResult.targetProfit)} JPY]`;
-    }
-    return `[${pair[0].toShortString()}, ${pair[1].toShortString()}, PL: ${_.round(
-      entryProfit
-    )} JPY (${entryProfitRatio}%)]`;
-=======
       currentExitCost = -exitAnalysisResult.targetProfit;
       currentExitCostRatio = _.round(currentExitCost / midNotional * 100, LOT_MIN_DECIMAL_PLACE);
       currentExitNetProfitRatio = _.round(
@@ -165,7 +156,6 @@ export default class OppotunitySearcher extends EventEmitter {
       ].join(', ')}]`;
     }
     return `[${[OrderUtil.toShortString(pair[0]), OrderUtil.toShortString(pair[1]), entryProfitString].join(', ')}]`;
->>>>>>> upstream/master
   }
 
   private printSpreadAnalysisResult(result: SpreadAnalysisResult) {
