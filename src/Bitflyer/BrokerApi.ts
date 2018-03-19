@@ -13,7 +13,9 @@ import {
   BalanceResponse,
   BoardResponse,
   ChildOrder,
-  Balance
+  Balance,
+  CollateralAccount,
+  CollateralAccountResponse
 } from './types';
 
 export default class BrokerApi {
@@ -48,6 +50,12 @@ export default class BrokerApi {
     const path = '/v1/me/getbalance';
     const response = await this.get<BalanceResponse>(path);
     return response.map(x => new Balance(x));
+  }
+
+  async getCollateralAccounts(): Promise<CollateralAccountResponse> {
+    const path = '/v1/me/getcollateralaccounts';
+    const response = await this.get<CollateralAccountResponse>(path);
+    return response.map(x => new CollateralAccount(x));
   }
 
   async getBoard(): Promise<BoardResponse> {

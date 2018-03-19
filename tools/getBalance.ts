@@ -5,7 +5,7 @@ import { getConfigRoot, findBrokerConfig } from '../src/configUtil';
 import BitflyerApi from '../src/Bitflyer/BrokerApi';
 import CoincheckApi from '../src/Coincheck/BrokerApi';
 import QuoineApi from '../src/Quoine/BrokerApi';
-import { Balance } from '../src/Bitflyer/types';
+import { Balance, CollateralAccount } from '../src/Bitflyer/types';
 import { TradingAccount, AccountBalance } from '../src/Quoine/types';
 import { options } from '@bitr/logger';
 
@@ -14,6 +14,7 @@ options.enabled = false;
 async function main() {
   const config = getConfigRoot();
   const bfConfig = findBrokerConfig(config, 'Bitflyer');
+  const bfFxConfig = findBrokerConfig(config, 'BitflyerFX')
   const ccConfig = findBrokerConfig(config, 'Coincheck');
   const quConfig = findBrokerConfig(config, 'Quoine');
 
@@ -38,8 +39,16 @@ async function main() {
     process.stdout.write(`bitFlyer, BTC, Cash, ${bfBtc}\n`);
   }
 
+  // bitflyer collateral balance
+  if (bfFxConfig.enabled) {
+    const bfFxBalance = await bfApi.getCollateralAccounts();
+    const bfFxJpy = (bfFxBalance.find(x => x.currency_code === 'JPY') as CollateralAccount).amount;
+    process.stdout.write(`bitFlyer, JPY, Margin, ${_.round(bfFxJpy)}\n`);
+    allCash += _.round(bfFxJpy);
+  }
+
   // coincheck cash balance
-  if (ccConfig.enabled) {
+  if (true) {
     const ccBalance = await ccApi.getAccountsBalance();
     if (ccBalance.jpy){
       process.stdout.write(`Coincheck, JPY, Cash, ${_.round(ccBalance.jpy)}\n`);
@@ -51,7 +60,7 @@ async function main() {
     // coincheck margin balance
     const ccLeverageBalance = await ccApi.getLeverageBalance();
     process.stdout.write(`Coincheck, JPY, Margin, ${_.round(ccLeverageBalance.margin.jpy)}\n`);
-    if(0){
+    if(ccLeverageBalance.margin_available.jpy){
       process.stdout.write(`Coincheck, JPY, Free Margin, ${_.round(ccLeverageBalance.margin_available.jpy)}\n`);
     }
     const positions = await ccApi.getAllOpenLeveragePositions();

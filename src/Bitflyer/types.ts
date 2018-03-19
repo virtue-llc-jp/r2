@@ -68,6 +68,13 @@ export class Balance extends Castable {
 
 export type BalanceResponse = Balance[];
 
+export class CollateralAccount extends Castable {
+  @cast currency_code: string;
+  @cast amount: number;
+}
+
+export type CollateralAccountResponse = CollateralAccount[];
+
 export interface ChildOrdersParam {
   product_code?: string;
   count?: number;
