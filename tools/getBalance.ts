@@ -59,7 +59,9 @@ async function main() {
     
     // coincheck margin balance
     const ccLeverageBalance = await ccApi.getLeverageBalance();
-    process.stdout.write(`Coincheck, JPY, Margin, ${_.round(ccLeverageBalance.margin.jpy)}\n`);
+    if(ccLeverageBalance.margin.jpy){
+      process.stdout.write(`Coincheck, JPY, Margin, ${_.round(ccLeverageBalance.margin.jpy)}\n`);
+    }
     if(ccLeverageBalance.margin_available.jpy){
       process.stdout.write(`Coincheck, JPY, Free Margin, ${_.round(ccLeverageBalance.margin_available.jpy)}\n`);
     }
@@ -78,8 +80,8 @@ async function main() {
     const quCashBalance = await quApi.getAccountBalance();
     const quJpyCash = quCashBalance.find(b => b.currency === 'JPY') as AccountBalance;
     const quBtcCash = quCashBalance.find(b => b.currency === 'BTC') as AccountBalance;
-    process.stdout.write(`Quoinex, JPY, Cash, ${_.round(quJpyCash.balance)}\n`);
-    process.stdout.write(`Quoinex, BTC, Cash, ${quBtcCash.balance}\n`);
+    process.stdout.write(`Quoine, JPY, Cash, ${_.round(quJpyCash.balance)}\n`);
+    process.stdout.write(`Quoine, BTC, Cash, ${quBtcCash.balance}\n`);
 
     // quoine margin balance
     const quBalance = await quApi.getTradingAccounts();

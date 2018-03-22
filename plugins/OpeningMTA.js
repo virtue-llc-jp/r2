@@ -18,10 +18,10 @@ const ss = require('simple-statistics');
 const { getLogger } = require('@bitr/logger');
 
 const precision = 3;
-const sigma_power = 2.00; // 標準偏差の倍率(σ->68.3% 2σ->95.45% 2.33σ->99% 3σ->99.7%)
-const sigma_limit = 3.10; // 標準偏差の上限倍率
-const profit_ratio = 0.66; // 偏差のうちNetProfitとする割合
-const takeSampleCount = 120; // 使用する直近のサンプル数(おおよそサンプル数×3秒間のデータ)
+const sigma_power = 2.10; // 標準偏差の倍率(σ->68.3% 2σ->95.45% 2.33σ->99% 3σ->99.7%)
+const sigma_limit = 4.00; // 標準偏差の上限倍率
+const profit_ratio = 0.75; // 偏差のうちNetProfitとする割合
+const takeSampleCount = 100; // 使用する直近のサンプル数(おおよそサンプル数×3秒間のデータ)
 
 class TestCalcMTA {
   // Constructor is called when initial snapshot of spread stat history has arrived.
