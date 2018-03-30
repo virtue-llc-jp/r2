@@ -93,7 +93,7 @@ export default class BrokerAdapterImpl implements BrokerAdapter {
   async fetchQuotes(): Promise<Quote[]> {
     const response = await this.brokerApi.getBoard();
     this.boardState = await this.getBoardState();
-    this.log.info("bitFlyerFX Health: " + this.boardState['health']);
+    this.log.debug("bitFlyerFX Health: " + this.boardState['health']);
     switch (this.boardState['health']) {
       case 'NORMAL' :
         return this.mapToQuote(response);
@@ -192,13 +192,13 @@ export default class BrokerAdapterImpl implements BrokerAdapter {
     const asks = _(boardResponse.asks)
       .take(100)
       .map(q => {
-        return { broker: this.broker, side: QuoteSide.Ask, price: Number(q.price), volume: Number(0.00001) };
+        return { broker: this.broker, side: QuoteSide.Ask, price: Number(q.price), volume: Number(0.001) };
       })
       .value();
     const bids = _(boardResponse.bids)
       .take(100)
       .map(q => {
-        return { broker: this.broker, side: QuoteSide.Bid, price: Number(q.price), volume: Number(0.00001) };
+        return { broker: this.broker, side: QuoteSide.Bid, price: Number(q.price), volume: Number(0.001) };
       })
       .value();
     return _.concat(asks, bids);
