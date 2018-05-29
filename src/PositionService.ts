@@ -3,7 +3,7 @@ import { ConfigStore, BrokerConfig, BrokerMap, BrokerPosition } from './types';
 import { getLogger } from '@bitr/logger';
 import * as _ from 'lodash';
 import Decimal from 'decimal.js';
-import { hr, eRound, splitSymbol, padEnd, padStart } from './util';
+import { hr, eRound, splitSymbol, padEnd, padStart, delay } from './util';
 import symbols from './symbols';
 import BrokerAdapterRouter from './BrokerAdapterRouter';
 import BrokerStabilityTracker from './BrokerStabilityTracker';
@@ -70,6 +70,8 @@ export default class PositionService extends EventEmitter {
     this.log.debug('Refreshing positions...');
     if (this.isRefreshing) {
       this.log.debug('Already refreshing.');
+      await delay(this.configStore.config.orderStatusCheckInterval);
+      this.isRefreshing = false;
       return;
     }
     try {

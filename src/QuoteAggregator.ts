@@ -5,6 +5,7 @@ import * as _ from 'lodash';
 import symbols from './symbols';
 import BrokerAdapterRouter from './BrokerAdapterRouter';
 import { DateTime, Interval } from 'luxon';
+import { delay } from './util';
 import { AwaitableEventEmitter } from '@bitr/awaitable-event-emitter';
 
 @injectable()
@@ -41,6 +42,8 @@ export default class QuoteAggregator extends AwaitableEventEmitter {
   private async aggregate(): Promise<void> {
     if (this.isRunning) {
       this.log.debug('Aggregator is already running. Skipped iteration.');
+      await delay(this.configStore.config.orderStatusCheckInterval);
+      this.isRunning = false;
       return;
     }
     try {
