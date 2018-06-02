@@ -2,7 +2,7 @@ import fetch, { RequestInit as FetchRequestInit } from 'node-fetch';
 import { getLogger } from '@bitr/logger';
 
 export default class WebClient {
-  static fetchTimeout = 5000;
+  static fetchTimeout = 2500;
   private readonly log = getLogger('WebClient');
 
   constructor(public readonly baseUrl: string) {}
