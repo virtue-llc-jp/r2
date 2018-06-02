@@ -5,7 +5,6 @@ import * as _ from 'lodash';
 import symbols from './symbols';
 import BrokerAdapterRouter from './BrokerAdapterRouter';
 import { DateTime, Interval } from 'luxon';
-import { delay } from './util';
 import { AwaitableEventEmitter } from '@bitr/awaitable-event-emitter';
 
 @injectable()
@@ -14,12 +13,14 @@ export default class QuoteAggregator extends AwaitableEventEmitter {
   private timer;
   private isRunning: boolean;
   private quotes: Quote[] = [];
+  private retryCount: number;
 
   constructor(
     @inject(symbols.ConfigStore) private readonly configStore: ConfigStore,
     private readonly brokerAdapterRouter: BrokerAdapterRouter
   ) {
     super();
+    this.retryCount = 0;
   }
 
   async start(): Promise<void> {
@@ -42,12 +43,16 @@ export default class QuoteAggregator extends AwaitableEventEmitter {
   private async aggregate(): Promise<void> {
     if (this.isRunning) {
       this.log.debug('Aggregator is already running. Skipped iteration.');
-      await delay(this.configStore.config.orderStatusCheckInterval);
-      this.isRunning = false;
+      if(this.retryCount > 30){
+        this.isRunning = false;
+      } else {
+        this.retryCount++;
+      }
       return;
     }
     try {
       this.isRunning = true;
+      this.retryCount = 0;
       this.log.debug('Aggregating quotes...');
       const enabledBrokers = this.getEnabledBrokers();
       const fetchTasks = enabledBrokers.map(x => this.brokerAdapterRouter.fetchQuotes(x));

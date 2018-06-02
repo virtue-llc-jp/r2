@@ -3,7 +3,7 @@ import { ConfigStore, BrokerConfig, BrokerMap, BrokerPosition } from './types';
 import { getLogger } from '@bitr/logger';
 import * as _ from 'lodash';
 import Decimal from 'decimal.js';
-import { hr, eRound, splitSymbol, padEnd, padStart, delay } from './util';
+import { hr, eRound, splitSymbol, padEnd, padStart } from './util';
 import symbols from './symbols';
 import BrokerAdapterRouter from './BrokerAdapterRouter';
 import BrokerStabilityTracker from './BrokerStabilityTracker';
@@ -16,6 +16,7 @@ export default class PositionService extends EventEmitter {
   private timer;
   private isRefreshing: boolean;
   private _positionMap: BrokerMap<BrokerPosition>;
+  private retryCount: number;
 
   constructor(
     @inject(symbols.ConfigStore) private readonly configStore: ConfigStore,
@@ -23,6 +24,7 @@ export default class PositionService extends EventEmitter {
     private readonly brokerStabilityTracker: BrokerStabilityTracker
   ) {
     super();
+    this.retryCount = 0;
   }
 
   async start(): Promise<void> {
@@ -70,12 +72,16 @@ export default class PositionService extends EventEmitter {
     this.log.debug('Refreshing positions...');
     if (this.isRefreshing) {
       this.log.debug('Already refreshing.');
-      await delay(this.configStore.config.orderStatusCheckInterval);
-      this.isRefreshing = false;
+      if(this.retryCount > 30){
+        this.isRefreshing = false;
+      } else {
+        this.retryCount++;
+      }
       return;
     }
     try {
       this.isRefreshing = true;
+      this.retryCount = 0;
       const config = this.configStore.config;
       const brokerConfigs = config.brokers.filter(b => b.enabled);
       const promises = brokerConfigs.map(brokerConfig => this.getBrokerPosition(brokerConfig, config.minSize));
