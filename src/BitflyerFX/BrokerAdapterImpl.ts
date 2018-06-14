@@ -190,15 +190,15 @@ export default class BrokerAdapterImpl implements BrokerAdapter {
 
   private mapToQuoteVolZero(boardResponse: BoardResponse): Quote[] {
     const asks = _(boardResponse.asks)
-      .take(100)
+      .take(5)
       .map(q => {
-        return { broker: this.broker, side: QuoteSide.Ask, price: Number(q.price), volume: Number(0.001) };
+        return { broker: this.broker, side: QuoteSide.Ask, price: Number(q.price), volume: Number(0.01) };
       })
       .value();
     const bids = _(boardResponse.bids)
-      .take(100)
+      .take(5)
       .map(q => {
-        return { broker: this.broker, side: QuoteSide.Bid, price: Number(q.price), volume: Number(0.001) };
+        return { broker: this.broker, side: QuoteSide.Bid, price: Number(q.price), volume: Number(0.01) };
       })
       .value();
     return _.concat(asks, bids);
