@@ -87,18 +87,18 @@ export default class BrokerAdapterImpl implements BrokerAdapter {
 
   async getBtcPosition(): Promise<number> {
     const positions = await this.brokerApi.getPositions();
+    this.boardState = await this.getBoardState();
     return _(positions).sumBy(p => p.size * (p.side === 'BUY' ? 1 : -1));
   }
 
   async fetchQuotes(): Promise<Quote[]> {
     const response = await this.brokerApi.getBoard();
-    this.boardState = await this.getBoardState();
     this.log.debug("bitFlyerFX Health: " + this.boardState['health']);
     switch (this.boardState['health']) {
       case 'NORMAL' :
         return this.mapToQuote(response);
       case 'BUSY' :
-        return this.mapToQuote(response);
+        return this.mapToQuoteVolZero(response);
       default :
         return this.mapToQuoteVolZero(response);
     }
