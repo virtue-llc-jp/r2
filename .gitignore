@@ -15,6 +15,7 @@ config.json
 .vscode
 .idea
 .python-version
+myMTA*.js
 datastore/
 reports/
 sandbox/
