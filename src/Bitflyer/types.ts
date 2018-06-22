@@ -75,6 +75,13 @@ export class CollateralAccount extends Castable {
 
 export type CollateralAccountResponse = CollateralAccount[];
 
+export class CollateralResponse extends Castable {
+  @cast collateral: number;
+  @cast open_position_pnl: number;
+  @cast require_collateral: number;
+  @cast keep_rate: number;
+}
+
 export interface ChildOrdersParam {
   product_code?: string;
   count?: number;
