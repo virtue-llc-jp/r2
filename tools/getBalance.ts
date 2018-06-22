@@ -96,9 +96,9 @@ async function main() {
 
     // quioine btc rate
     try{
-      const ccOrderBooks = await ccApi.getOrderBooks();
-      const asks = ccOrderBooks.asks;
-      btcRate = asks[0][0];
+      const quPriceLevels = await quApi.getPriceLevels();
+      const bids = quPriceLevels.sell_price_levels;
+      btcRate = bids[0][0];
       allCash += quJpyCash.balance;
       allBtc += quBtcCash.balance;
     } catch(ex){
