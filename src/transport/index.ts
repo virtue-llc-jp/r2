@@ -39,8 +39,8 @@ try {
 process.stdin.pipe(pretty({ colorize: true, withLabel: false, debug: false, hidden: false })).pipe(process.stdout);
 
 // debug.log
-const debugFile = fs.createWriteStream('logs/debug.log', { flags: 'w' });
-process.stdin.pipe(pretty({ colorize: false, withLabel: true, debug: true, hidden: false })).pipe(debugFile);
+//const debugFile = fs.createWriteStream('logs/debug.log', { flags: 'w' });
+//process.stdin.pipe(pretty({ colorize: false, withLabel: true, debug: true, hidden: false })).pipe(debugFile);
 
 // info.log
 const infoTransform = process.stdin.pipe(pretty({ colorize: false, withLabel: true, debug: false, hidden: false }));
@@ -96,7 +96,7 @@ function broadcast(clients: WebSocket[], type: string, body: any) {
 }
 
 function addIntegration(
-  Integration: { new (config: any): SlackIntegration | LineIntegration },
+  Integration: { new(config: any): SlackIntegration | LineIntegration },
   config: SlackConfig | LineConfig | undefined
 ): void {
   if (config && config.enabled) {
