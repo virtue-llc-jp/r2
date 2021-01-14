@@ -22,10 +22,49 @@ export default class BrokerApi {
   private static CACHE_MS = 1000;
   private leveragePositionsCache?: LeveragePosition[];
   private readonly baseUrl = 'https://coincheck.com';
+  private readonly wsUrl = 'wss://ws-api.coincheck.com/';
   private readonly webClient: WebClient = new WebClient(this.baseUrl);
+  private webSocket: WebSocket;
+  // TODO prepare bid/ask quote map (price->size)
 
-  constructor(private readonly key: string, private readonly secret: string, private readonly useWebSocket: boolean) {}
+  constructor(private readonly key: string, private readonly secret: string, private readonly useWebSocket: boolean) {
+    if (useWebSocket) {
+      this.webSocket = new WebSocket(this.wsUrl);
+      this.webSocket.onopen = this.onWebSocketOpen;
+      this.webSocket.onmessage = this.onWebSocketMessage;
+      this.webSocket.onclose = this.onWebSocketClose;
+      this.webSocket.onerror = this.onWebSocketError;
+    }
+  }
 
+  private onWebSocketOpen(event: Event) {
+    this.webSocket.send(JSON.stringify({ type: 'subscribe', channel: 'btc_jpy-orderbook' }));
+  }
+    
+  private onWebSocketMessage(event: MessageEvent<string>) {
+    if (event && event.data) {
+      const orderbook = JSON.parse(event.data) as OrderBooksResponse;
+      orderbook.asks.forEach(q => {
+        // TODO put to map
+        return;
+      });
+      orderbook.bids.forEach(q => {
+        // TODO put to map
+        return;
+      });
+    }
+  }
+  
+  private onWebSocketError(event: Event) {
+    // TODO: reconnect
+    return;
+  }
+  
+  private onWebSocketClose(event: CloseEvent) {
+    // TODO: reconnect
+    return;
+  }
+  
   async getAccountsBalance(): Promise<AccountsBalanceResponse> {
     const path = '/api/accounts/balance';
     return new AccountsBalanceResponse(await this.get<AccountsBalanceResponse>(path));
@@ -71,6 +110,7 @@ export default class BrokerApi {
   async getOrderBooks(): Promise<OrderBooksResponse> {
     if (this.useWebSocket) {
       // Web-socket version
+      // TODO convert quote map to response
       return new OrderBooksResponse(null);
     }
     // Fetch version
