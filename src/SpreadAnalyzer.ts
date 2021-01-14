@@ -72,12 +72,14 @@ export default class SpreadAnalyzer {
 
     const invertedSpread = bid.price - ask.price;
     const availableVolume = _.floor(_.min([bid.volume, ask.volume]) as number, LOT_MIN_DECIMAL_PLACE);
-    const allowedShortSize = positionMap[bid.broker].allowedShortSize;
-    const allowedLongSize = positionMap[ask.broker].allowedLongSize;
-    let targetVolume = _.min([availableVolume, config.maxSize, allowedShortSize, allowedLongSize]) as number;
-    targetVolume = _.floor(targetVolume, LOT_MIN_DECIMAL_PLACE);
+    let targetVolume = 0;
     if (closingPair) {
       targetVolume = closingPair[0].size;
+    } else {
+      targetVolume = _.min([availableVolume, config.maxSize,
+        positionMap[bid.broker].allowedShortSize,
+        positionMap[ask.broker].allowedLongSize]) as number;
+      targetVolume = _.floor(targetVolume, LOT_MIN_DECIMAL_PLACE);
     }
     const commission = this.calculateTotalCommission([bid, ask], targetVolume);
     const targetProfit = _.round(invertedSpread * targetVolume - commission);
