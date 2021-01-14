@@ -15,8 +15,8 @@ import {
 import { OrderBooksResponse, CashMarginTypeStrategy } from './types';
 import { eRound, almostEqual, toExecution, toQuote } from '../util';
 import CashStrategy from './CashStrategy';
-import MarginOpenStrategy from './MarginOpenStrategy';
-import NetOutStrategy from './NetOutStrategy';
+// import MarginOpenStrategy from './MarginOpenStrategy';
+// import NetOutStrategy from './NetOutStrategy';
 
 export default class BrokerAdapterImpl implements BrokerAdapter {
   private readonly brokerApi: BrokerApi;
@@ -25,11 +25,12 @@ export default class BrokerAdapterImpl implements BrokerAdapter {
   readonly strategyMap: Map<CashMarginType, CashMarginTypeStrategy>;
 
   constructor(private readonly config: BrokerConfigType) {
-    this.brokerApi = new BrokerApi(this.config.key ?? '', this.config.secret ?? '');
+    this.brokerApi = new BrokerApi(this.config.key ?? '', this.config.secret ?? '', this.config.useWebSocket);
     this.strategyMap = new Map<CashMarginType, CashMarginTypeStrategy>([
-      [CashMarginType.Cash, new CashStrategy(this.brokerApi)],
-      [CashMarginType.MarginOpen, new MarginOpenStrategy(this.brokerApi)],
-      [CashMarginType.NetOut, new NetOutStrategy(this.brokerApi)]
+      // Coincheck margin account is obsoleted.
+      // [CashMarginType.MarginOpen, new MarginOpenStrategy(this.brokerApi)],
+      // [CashMarginType.NetOut, new NetOutStrategy(this.brokerApi)],
+      [CashMarginType.Cash, new CashStrategy(this.brokerApi)]
     ]);
   }
 

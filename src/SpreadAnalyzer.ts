@@ -63,8 +63,10 @@ export default class SpreadAnalyzer {
     }
     const { ask, bid } = this.getBest(filteredQuotes);
     if (bid === undefined) {
+      this.log.debug(`positionMap: ${JSON.stringify(positionMap)}`);
       throw new Error(t`NoBestBidWasFound`);
     } else if (ask === undefined) {
+      this.log.debug(`positionMap: ${JSON.stringify(positionMap)}`);
       throw new Error(t`NoBestAskWasFound`);
     }
 

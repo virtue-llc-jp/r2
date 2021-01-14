@@ -3,7 +3,7 @@ import { injectable, inject } from 'inversify';
 import * as _ from 'lodash';
 import { ConfigStore, Quote } from './types';
 import t from './intl';
-import { hr, delay } from './util';
+import { delay } from './util';
 import symbols from './symbols';
 import { fatalErrors } from './constants';
 import QuoteAggregator from './QuoteAggregator';
@@ -53,9 +53,8 @@ export default class Arbitrager {
       return;
     }
     this.positionService.print();
-    this.log.info({ hidden: true }, hr(20) + 'ARBITRAGER' + hr(20));
+    this.log.info({ hidden: true }, 'ARBITRAGER:');
     await this.arbitrage(quotes);
-    this.log.info({ hidden: true }, hr(50));
   }
 
   private async arbitrage(quotes: Quote[]): Promise<void> {

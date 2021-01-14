@@ -44,7 +44,7 @@ export default class OppotunitySearcher extends EventEmitter {
   async search(
     quotes: Quote[]
   ): Promise<{ found: false } | { found: true; spreadAnalysisResult: SpreadAnalysisResult; closable: boolean }> {
-    this.log.info(t`LookingForOpportunity`);
+    // this.log.info(t`LookingForOpportunity`);
     const { closable, key: closablePairKey, exitAnalysisResult } = await this.findClosable(quotes);
     if (closable) {
       this.log.info(t`FoundClosableOrders`);

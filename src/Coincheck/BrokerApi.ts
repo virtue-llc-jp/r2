@@ -24,7 +24,7 @@ export default class BrokerApi {
   private readonly baseUrl = 'https://coincheck.com';
   private readonly webClient: WebClient = new WebClient(this.baseUrl);
 
-  constructor(private readonly key: string, private readonly secret: string) {}
+  constructor(private readonly key: string, private readonly secret: string, private readonly useWebSocket: boolean) {}
 
   async getAccountsBalance(): Promise<AccountsBalanceResponse> {
     const path = '/api/accounts/balance';
@@ -69,6 +69,11 @@ export default class BrokerApi {
   }
 
   async getOrderBooks(): Promise<OrderBooksResponse> {
+    if (this.useWebSocket) {
+      // Web-socket version
+      return new OrderBooksResponse(null);
+    }
+    // Fetch version
     const path = '/api/order_books';
     return new OrderBooksResponse(await this.webClient.fetch<OrderBooksResponse>(path, undefined, false));
   }

@@ -12,6 +12,7 @@ export interface BrokerConfigType {
   cashMarginType: CashMarginType;
   leverageLevel: number;
   commissionPercent: number;
+  useWebSocket: boolean;
 }
 
 export class BrokerConfig extends Castable implements BrokerConfigType {
@@ -25,6 +26,7 @@ export class BrokerConfig extends Castable implements BrokerConfigType {
   @cast cashMarginType: CashMarginType;
   @cast leverageLevel: number;
   @cast commissionPercent: number;
+  @cast useWebSocket: boolean;
   @cast @element(Array, String) noTradePeriods: string[][];
 }
 

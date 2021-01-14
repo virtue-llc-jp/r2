@@ -16,10 +16,6 @@ export function padEnd(s: ToStringable, n: number): string {
   return _.padEnd(s.toString(), n);
 }
 
-export function hr(width: number): string {
-  return _.join(_.times(width, _.constant('-')), '');
-}
-
 export function eRound(n: number): number {
   return _.round(n, 10);
 }

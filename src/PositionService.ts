@@ -3,7 +3,7 @@ import { ConfigStore, BrokerConfig, BrokerMap, BrokerPosition } from './types';
 import { getLogger } from '@bitr/logger';
 import * as _ from 'lodash';
 import Decimal from 'decimal.js';
-import { hr, eRound, splitSymbol, padEnd, padStart } from './util';
+import { eRound, splitSymbol, padEnd, padStart } from './util';
 import symbols from './symbols';
 import BrokerAdapterRouter from './BrokerAdapterRouter';
 import BrokerStabilityTracker from './BrokerStabilityTracker';
@@ -48,13 +48,12 @@ export default class PositionService extends EventEmitter {
       `${t`LongAllowed`}: ${isOk(brokerPosition.longAllowed)}, ` +
       `${t`ShortAllowed`}: ${isOk(brokerPosition.shortAllowed)}`;
 
-    this.log.info({ hidden: true }, hr(21) + 'POSITION' + hr(21));
+    this.log.info({ hidden: true }, 'POSITION:');
     this.log.info({ hidden: true }, `Net Exposure: ${_.round(this.netExposure, 3)} ${baseCcy}`);
     _.each(this.positionMap, (position: BrokerPosition) => {
       const stability = this.brokerStabilityTracker.stability(position.broker);
       this.log.info({ hidden: true }, `${formatBrokerPosition(position)} (Stability: ${stability})`);
     });
-    this.log.info({ hidden: true }, hr(50));
     this.log.debug(JSON.stringify(this.positionMap));
   }
 
