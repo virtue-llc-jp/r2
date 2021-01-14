@@ -25,7 +25,7 @@ export default class BrokerAdapterImpl implements BrokerAdapter {
   readonly strategyMap: Map<CashMarginType, CashMarginTypeStrategy>;
 
   constructor(private readonly config: BrokerConfigType) {
-    this.brokerApi = new BrokerApi(this.config.key ?? "", this.config.secret ?? "");
+    this.brokerApi = new BrokerApi(this.config.key ?? '', this.config.secret ?? '');
     this.strategyMap = new Map<CashMarginType, CashMarginTypeStrategy>([
       [CashMarginType.Cash, new CashStrategy(this.brokerApi)],
       [CashMarginType.MarginOpen, new MarginOpenStrategy(this.brokerApi)],

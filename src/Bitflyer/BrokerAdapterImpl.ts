@@ -23,7 +23,7 @@ export default class BrokerAdapterImpl implements BrokerAdapter {
   readonly broker = 'Bitflyer';
 
   constructor(private readonly config: BrokerConfigType) {
-    this.brokerApi = new BrokerApi(this.config.key ?? "", this.config.secret ?? "");
+    this.brokerApi = new BrokerApi(this.config.key ?? '', this.config.secret ?? '');
   }
 
   async send(order: Order): Promise<void> {
