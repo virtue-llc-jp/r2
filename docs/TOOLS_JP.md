@@ -24,12 +24,20 @@ Coincheck, BTC, Leverage Position, 3.456
 Quoine, JPY, Margin, 300000
 Quoine, JPY, Free Margin, 123456
 Quoine, BTC, Leverage Position, 0.01
+Bitbankcc, JPY, Cash, 123456
+Bitbankcc, BTC, Cash, 0.123
 ```
 
 ## closeCcPosition - Coincheckの全レバレッジポジションを成行注文でクローズ
 
 ```bash
 npm run closeCcPosition
+```
+
+## closeBbPosition - Bitbankccの全現物BTCを成行注文で売却
+
+```bash
+npm run closeBbPosition
 ```
 
 ## closeBfPosition - bitFlyerの全現物BTCを成行注文で売却
@@ -50,7 +58,7 @@ npm run closeQuPosition
 npm run clearPairs
 ```
 
-## closeAll - 上記3つのcloseを順に実行し、clearPairsでペア情報をクリア後、getBalanceを実行する。
+## closeAll - 上記4つのcloseを順に実行し、clearPairsでペア情報をクリア後、getBalanceを実行する。
 
 ```bash
 npm run closeAll
