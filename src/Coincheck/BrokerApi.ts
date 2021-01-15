@@ -1,6 +1,8 @@
+import { getLogger } from '@bitr/logger';
 import * as _ from 'lodash';
 import { hmac, nonce, safeQueryStringStringify } from '../util';
 import WebClient from '../WebClient';
+import * as WebSocket from 'ws';
 import {
   AccountsBalanceResponse,
   LeveragePositionsRequest,
@@ -19,52 +21,93 @@ import {
 import { setTimeout } from 'timers';
 
 export default class BrokerApi {
+  private readonly log = getLogger('Coincheck.BrokerApi');
   private static CACHE_MS = 1000;
   private leveragePositionsCache?: LeveragePosition[];
   private readonly baseUrl = 'https://coincheck.com';
   private readonly wsUrl = 'wss://ws-api.coincheck.com/';
   private readonly webClient: WebClient = new WebClient(this.baseUrl);
   private webSocket: WebSocket;
-  // TODO prepare bid/ask quote map (price->size)
+  private bidMap: Map<number, number>;
+  private askMap: Map<number, number>;
 
   constructor(private readonly key: string, private readonly secret: string, private readonly useWebSocket: boolean) {
     if (useWebSocket) {
-      this.webSocket = new WebSocket(this.wsUrl);
-      this.webSocket.onopen = this.onWebSocketOpen;
-      this.webSocket.onmessage = this.onWebSocketMessage;
-      this.webSocket.onclose = this.onWebSocketClose;
-      this.webSocket.onerror = this.onWebSocketError;
+      this.createWebSocket();
     }
   }
 
-  private onWebSocketOpen(event: Event) {
-    this.webSocket.send(JSON.stringify({ type: 'subscribe', channel: 'btc_jpy-orderbook' }));
+  private createWebSocket(): void {
+    this.webSocket = new WebSocket(this.wsUrl);
+    this.webSocket.onopen = (event: {target: WebSocket}) => {
+      this.log.debug('onWebSocketOpen()');
+      this.bidMap = new Map<number, number>();
+      this.askMap = new Map<number, number>();
+      event.target.send(JSON.stringify({ type: 'subscribe', channel: 'btc_jpy-orderbook' }));
+    };
+    this.webSocket.onmessage = (event: {
+      data: WebSocket.Data;
+      type: string;
+      target: WebSocket;
+    }) => {
+      if (event && event.data) {
+        const message = JSON.parse(event.data.toString()) as OrderBooksResponse[];
+        const orderbook = message[1];
+        if (orderbook.bids) {
+          orderbook.bids.forEach(q => {
+            q[0] = Number(q[0]);
+            q[1] = Number(q[1]);
+            if (q[1] === 0) {
+              this.bidMap.delete(q[0]);
+            } else {
+              this.bidMap.set(q[0], q[1]);
+            }
+          });
+        }
+        if (orderbook.asks) {
+          orderbook.asks.forEach(q => {
+            q[0] = Number(q[0]);
+            q[1] = Number(q[1]);
+            if (q[1] === 0) {
+              this.askMap.delete(q[0]);
+            } else {
+              this.askMap.set(q[0], q[1]);
+            }
+          });
+        }
+      }
+    };
+    this.webSocket.onclose = (event: {
+      wasClean: boolean;
+      code: number;
+      reason: string;
+      target: WebSocket;
+    }) => {
+      this.log.debug('onWebSocketClose()');
+      this.recoveryWebSocket();
+    };
+    this.webSocket.onerror = (event: {
+      error: any;
+      message: string;
+      type: string;
+      target: WebSocket;
+    }) => {
+      this.log.debug('onWebSocketError()');
+      this.recoveryWebSocket();
+    };
   }
-    
-  private onWebSocketMessage(event: MessageEvent<string>) {
-    if (event && event.data) {
-      const orderbook = JSON.parse(event.data) as OrderBooksResponse;
-      orderbook.asks.forEach(q => {
-        // TODO put to map
-        return;
-      });
-      orderbook.bids.forEach(q => {
-        // TODO put to map
-        return;
-      });
+
+  private recoveryWebSocket(): void {
+    this.askMap.clear();
+    this.bidMap.clear();
+    try {
+      this.webSocket.close();
+    } catch (e) {
+      // through
     }
+    this.createWebSocket();
   }
-  
-  private onWebSocketError(event: Event) {
-    // TODO: reconnect
-    return;
-  }
-  
-  private onWebSocketClose(event: CloseEvent) {
-    // TODO: reconnect
-    return;
-  }
-  
+
   async getAccountsBalance(): Promise<AccountsBalanceResponse> {
     const path = '/api/accounts/balance';
     return new AccountsBalanceResponse(await this.get<AccountsBalanceResponse>(path));
@@ -110,8 +153,10 @@ export default class BrokerApi {
   async getOrderBooks(): Promise<OrderBooksResponse> {
     if (this.useWebSocket) {
       // Web-socket version
-      // TODO convert quote map to response
-      return new OrderBooksResponse(null);
+      const bids = this.bidMap ? Array.from(this.bidMap.entries()) : [];
+      const asks = this.askMap ? Array.from(this.askMap.entries()) : [];
+      const res = new OrderBooksResponse({ bids, asks });
+      return res;
     }
     // Fetch version
     const path = '/api/order_books';
