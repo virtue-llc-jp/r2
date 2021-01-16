@@ -40,7 +40,7 @@ export default class SpreadAnalyzer {
       throw new Error('Position map is empty.');
     }
     let filteredQuotes = _(quotes)
-      .filter(q => this.isAllowedByCurrentPosition(q, positionMap[q.broker]))
+      .filter(q => config.demoMode || this.isAllowedByCurrentPosition(q, positionMap[q.broker]))
       .filter(q => new Decimal(q.volume).gte(
         (closingPair ? closingPair[0].size : config.minSize) *
           _.floor(config.maxTargetVolumePercent !== undefined
