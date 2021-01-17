@@ -1,7 +1,7 @@
 // tslint:disable:variable-name
 import { Castable, cast, element } from '@bitr/castable';
 
-class PriceSizePair extends Castable {
+export class PriceSizePair extends Castable {
   @cast price: number;
   @cast size: number;
 }
@@ -68,19 +68,20 @@ export class Balance extends Castable {
 
 export type BalanceResponse = Balance[];
 
-export class CollateralAccount extends Castable {
-  @cast currency_code: string;
-  @cast amount: number;
-}
-
-export type CollateralAccountResponse = CollateralAccount[];
-
-export class CollateralResponse extends Castable {
-  @cast collateral: number;
-  @cast open_position_pnl: number;
+export class FXPosition extends Castable {
+  @cast product_code: string;
+  @cast side: string;
+  @cast price: number;
+  @cast size: number;
+  @cast commission: number;
+  @cast swap_point_accumulate: number;
   @cast require_collateral: number;
-  @cast keep_rate: number;
+  @cast(Date) open_date: Date;
+  @cast leverage: number;
+  @cast pnl: number;
 }
+
+export type PositionsResponse = FXPosition[];
 
 export interface ChildOrdersParam {
   product_code?: string;

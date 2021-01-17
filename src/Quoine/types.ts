@@ -92,7 +92,7 @@ export class TradingAccount extends Castable {
   @cast leverage_level: number;
   @cast max_leverage_level: number;
   @cast current_leverage_level: number;
-  @cast pnl: string;
+  @cast pnl: number;
   @cast equity: string;
   @cast margin: number;
   @cast free_margin: number;

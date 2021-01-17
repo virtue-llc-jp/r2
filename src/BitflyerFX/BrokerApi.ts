@@ -1,4 +1,4 @@
-import { hmac, nonce, safeQueryStringStringify } from '../util';
+import { hmac, nonce, safeQueryStringStringify } from './util';
 import WebClient from '../WebClient';
 import {
   SendChildOrderRequest,
@@ -10,14 +10,12 @@ import {
   ExecutionsResponse,
   ExecutionsParam,
   Execution,
-  BalanceResponse,
   BoardResponse,
   ChildOrder,
-  Balance,
-  CollateralAccount,
-  CollateralAccountResponse,
-  CollateralResponse
-} from './types';
+  PositionsResponse,
+  FXPosition
+} from './brokerTypes';
+import { BoardState } from './types';
 
 export default class BrokerApi {
   private readonly baseUrl = 'https://api.bitflyer.com';
@@ -47,26 +45,20 @@ export default class BrokerApi {
     return response.map(x => new Execution(x));
   }
 
-  async getBalance(): Promise<BalanceResponse> {
-    const path = '/v1/me/getbalance';
-    const response = await this.get<BalanceResponse>(path);
-    return response.map(x => new Balance(x));
-  }
-
-  async getCollateralAccounts(): Promise<CollateralAccountResponse> {
-    const path = '/v1/me/getcollateralaccounts';
-    const response = await this.get<CollateralAccountResponse>(path);
-    return response.map(x => new CollateralAccount(x));
-  }
-
-  async getCollateral(): Promise<CollateralResponse> {
-    const path = '/v1/me/getcollateral';
-    return new CollateralResponse(await this.get<CollateralResponse>(path));
+  async getPositions(): Promise<PositionsResponse> {
+    const path = '/v1/me/getpositions?product_code=FX_BTC_JPY';
+    const response = await this.get<PositionsResponse>(path);
+    return response.map(x => new FXPosition(x));
   }
 
   async getBoard(): Promise<BoardResponse> {
-    const path = '/v1/board';
+    const path = '/v1/board?product_code=FX_BTC_JPY';
     return new BoardResponse(await this.webClient.fetch<BoardResponse>(path, undefined, false));
+  }
+
+  async getBoardState(): Promise<BoardState> {
+    const path = '/v1/getboardstate?product_code=FX_BTC_JPY';
+    return await this.get<BoardState>(path);
   }
 
   private async call<R>(path: string, method: string, body: string = ''): Promise<R> {
