@@ -6,6 +6,7 @@ import BitflyerApi from '../src/Bitflyer/BrokerApi';
 import CoincheckApi from '../src/Coincheck/BrokerApi';
 import QuoineApi from '../src/Quoine/BrokerApi';
 import { default as BitbankccApi, Asset } from '@bitr/bitbankcc-api';
+import { create as BXCreate } from '@bitr/btcbox';
 import { Balance } from '../src/Bitflyer/types';
 import { TradingAccount, AccountBalance } from '../src/Quoine/types';
 import { options } from '@bitr/logger';
@@ -19,6 +20,7 @@ async function main() {
   const ccConfig = findBrokerConfig(config, 'Coincheck');
   const quConfig = findBrokerConfig(config, 'Quoine');
   const bbConfig = findBrokerConfig(config, 'Bitbankcc');
+  const bxConfig = findBrokerConfig(config, 'Btcbox');
 
   const bfApi = new BitflyerApi(bfConfig.key ?? '', bfConfig.secret ?? '');
   const ccApi = new CoincheckApi(
@@ -28,6 +30,15 @@ async function main() {
   );
   const quApi = new QuoineApi(quConfig.key ?? '', quConfig.secret ?? '');
   const bbApi = new BitbankccApi(bbConfig.key ?? '', bbConfig.secret ?? '');
+  const bxApi = BXCreate({
+    broker: bxConfig.broker,
+    enabled: bxConfig.enabled,
+    key: bxConfig.key ?? '',
+    secret: bxConfig.secret ?? '',
+    maxLongPosition: bxConfig.maxLongPosition,
+    maxShortPosition: bxConfig.maxShortPosition,
+    cashMarginType: bxConfig.cashMarginType,
+  });
 
   // csv header
   process.stdout.write('Exchange, Currency, Type, Amount\n');
@@ -116,20 +127,21 @@ async function main() {
       process.stdout.write(`Quoine, JPY, PositionPL, ${quBtcJpyBalance.pnl}\n`);
     }
 
-    // quioine btc rate
-    try {
-      const quPriceLevels = await quApi.getPriceLevels();
-      const bids = quPriceLevels.sell_price_levels;
-      btcRate = bids[0][0];
-      allCash += quJpyCash.balance + quBtcJpyBalance.pnl;
-      allBtc += quBtcCash.balance;
-    } catch (ex) {
-      process.stdout.write(`Failire Get Price`);
+    // quione btc rate
+    if (0) {
+      try {
+        const quPriceLevels = await quApi.getPriceLevels();
+        const bids = quPriceLevels.sell_price_levels;
+        btcRate = bids[0][0];
+        allCash += quJpyCash.balance + quBtcJpyBalance.pnl;
+        allBtc += quBtcCash.balance;
+      } catch (ex) {
+        process.stdout.write(`Failire Get Price`);
+      }
+      allBalance = _.round(allCash + (allBtc * btcRate));
+      process.stdout.write(`All, JPY, Estimate, ${allBalance}\n`);
     }
-    allBalance = _.round(allCash + (allBtc * btcRate));
-    process.stdout.write(`All, JPY, Estimate, ${allBalance}\n`);
   }
-
   if (bbConfig.enabled) {
     // bitbankcc cash balance
     const bbAssetsResponse = await bbApi.getAssets();
@@ -143,6 +155,16 @@ async function main() {
       `Bitbankcc, JPY, Cash, ${_.round(bbJpyCash.free_amount)}\n`
     );
     process.stdout.write(`Bitbankcc, BTC, Cash, ${bbBtcCash.free_amount}\n`);
+  }
+  if (bxConfig.enabled) {
+    // btcbox cash balance
+    const bxPosition = await bxApi.getPositions();
+    const bxJpyCash = bxPosition.get('JPY') ?? 0;
+    const bxBtcCash = bxPosition.get('BTC') ?? 0;
+    process.stdout.write(
+      `Btcbox, JPY, Cash, ${_.round(bxJpyCash)}\n`
+    );
+    process.stdout.write(`Btcbox, BTC, Cash, ${bxBtcCash}\n`);
   }
 }
 
