@@ -77,7 +77,7 @@ export class OrdersResponse extends Castable {
   @cast order_fee: string;
   @cast source_action: string;
   @cast unwound_trade_id?: any;
-  @cast trade_id: string;
+  @cast trade_id?: string;
   @cast settings?: any;
   @cast trailing_stop_type: boolean;
   @cast trailing_stop_value: boolean;
