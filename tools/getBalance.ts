@@ -20,14 +20,14 @@ async function main() {
   const quConfig = findBrokerConfig(config, 'Quoine');
   const bbConfig = findBrokerConfig(config, 'Bitbankcc');
 
-  const bfApi = new BitflyerApi(bfConfig.key, bfConfig.secret);
+  const bfApi = new BitflyerApi(bfConfig.key ?? '', bfConfig.secret ?? '');
   const ccApi = new CoincheckApi(
-    ccConfig.key,
-    ccConfig.secret,
-    ccConfig.useWebSocket
+    ccConfig.key ?? '',
+    ccConfig.secret ?? '',
+    false
   );
-  const quApi = new QuoineApi(quConfig.key, quConfig.secret);
-  const bbApi = new BitbankccApi(bbConfig.key, bbConfig.secret);
+  const quApi = new QuoineApi(quConfig.key ?? '', quConfig.secret ?? '');
+  const bbApi = new BitbankccApi(bbConfig.key ?? '', bbConfig.secret ?? '');
 
   // csv header
   process.stdout.write('Exchange, Currency, Type, Amount\n');
@@ -66,29 +66,30 @@ async function main() {
     if (ccBalance.btc) {
       process.stdout.write(`Coincheck, BTC, Cash, ${ccBalance.btc}\n`);
     }
+    allCash += _.round(ccBalance.jpy);
+    allBtc += ccBalance.btc;
 
     // coincheck margin balance
-    const ccLeverageBalance = await ccApi.getLeverageBalance();
-    if (ccLeverageBalance.margin.jpy) {
-      process.stdout.write(`Coincheck, JPY, Margin, ${_.round(ccLeverageBalance.margin.jpy)}\n`);
-    }
-    if (ccLeverageBalance.margin_available.jpy) {
-      process.stdout.write(`Coincheck, JPY, Free Margin, ${_.round(ccLeverageBalance.margin_available.jpy)}\n`);
-    }
-    const positions = await ccApi.getAllOpenLeveragePositions();
-    const longPosition = _.sumBy(
-      positions.filter((p) => p.side === 'buy'),
-      (p) => p.amount
-    );
-    const shortPosition = _.sumBy(
-      positions.filter((p) => p.side === 'sell'),
-      (p) => p.amount
-    );
     if (0) {
+      const ccLeverageBalance = await ccApi.getLeverageBalance();
+      if (ccLeverageBalance.margin.jpy) {
+        process.stdout.write(`Coincheck, JPY, Margin, ${_.round(ccLeverageBalance.margin.jpy)}\n`);
+      }
+      if (ccLeverageBalance.margin_available.jpy) {
+        process.stdout.write(`Coincheck, JPY, Free Margin, ${_.round(ccLeverageBalance.margin_available.jpy)}\n`);
+      }
+      const positions = await ccApi.getAllOpenLeveragePositions();
+      const longPosition = _.sumBy(
+        positions.filter((p) => p.side === 'buy'),
+        (p) => p.amount
+      );
+      const shortPosition = _.sumBy(
+        positions.filter((p) => p.side === 'sell'),
+        (p) => p.amount
+      );
       process.stdout.write(`Coincheck, BTC, Leverage Position, ${longPosition - shortPosition}\n`);
+      allCash += _.round(ccLeverageBalance.margin.jpy);
     }
-    allCash += _.round(ccBalance.jpy + ccLeverageBalance.margin.jpy);
-    allBtc += ccBalance.btc;
   }
 
   if (quConfig.enabled) {
@@ -111,9 +112,9 @@ async function main() {
     if (0) {
       process.stdout.write(`Quoine, JPY, Margin, ${_.round(quBtcJpyBalance.balance)}\n`);
       process.stdout.write(`Quoine, JPY, Free Margin, ${_.round(quBtcJpyBalance.free_margin)}\n`);
+      process.stdout.write(`Quoine, BTC, Position, ${quBtcJpyBalance.position}\n`);
+      process.stdout.write(`Quoine, JPY, PositionPL, ${quBtcJpyBalance.pnl}\n`);
     }
-    process.stdout.write(`Quoine, BTC, Position, ${quBtcJpyBalance.position}\n`);
-    process.stdout.write(`Quoine, JPY, PositionPL, ${quBtcJpyBalance.pnl}\n`);
 
     // quioine btc rate
     try {

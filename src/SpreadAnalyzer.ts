@@ -76,9 +76,13 @@ export default class SpreadAnalyzer {
     if (closingPair) {
       targetVolume = closingPair[0].size;
     } else {
-      targetVolume = _.min([availableVolume, config.maxSize,
-        positionMap[bid.broker].allowedShortSize,
-        positionMap[ask.broker].allowedLongSize]) as number;
+      if (config.demoMode) {
+        targetVolume = _.min([availableVolume, config.maxSize]) as number;
+      } else {
+        targetVolume = _.min([availableVolume, config.maxSize,
+          positionMap[bid.broker].allowedShortSize,
+          positionMap[ask.broker].allowedLongSize]) as number;
+      }
       targetVolume = _.floor(targetVolume, LOT_MIN_DECIMAL_PLACE);
     }
     const commission = this.calculateTotalCommission([bid, ask], targetVolume);

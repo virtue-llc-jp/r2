@@ -32,7 +32,7 @@ export default class BrokerAdapterImpl implements BrokerAdapter {
   private boardState: BoardState;
 
   constructor(private readonly config: BrokerConfigType) {
-    this.brokerApi = new BrokerApi(this.config.key, this.config.secret);
+    this.brokerApi = new BrokerApi(this.config.key ?? '', this.config.secret ?? '');
     this.boardState = BoardState.STOP;
   }
 
