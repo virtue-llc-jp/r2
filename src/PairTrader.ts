@@ -10,7 +10,7 @@ import {
   OrderSide,
   ActivePairStore,
   Quote,
-  OrderPair
+  OrderPair,
 } from './types';
 import t from './intl';
 import { delay, formatQuote } from './util';
@@ -29,7 +29,8 @@ export default class PairTrader extends EventEmitter {
   constructor(
     @inject(symbols.ConfigStore) private readonly configStore: ConfigStore,
     private readonly brokerAdapterRouter: BrokerAdapterRouter,
-    @inject(symbols.ActivePairStore) private readonly activePairStore: ActivePairStore,
+    @inject(symbols.ActivePairStore)
+    private readonly activePairStore: ActivePairStore,
     private readonly singleLegHandler: SingleLegHandler
   ) {
     super();
@@ -39,22 +40,32 @@ export default class PairTrader extends EventEmitter {
     this.emit('status', value);
   }
 
-  async trade(spreadAnalysisResult: SpreadAnalysisResult, closable: boolean): Promise<void> {
+  async trade(
+    spreadAnalysisResult: SpreadAnalysisResult,
+    closable: boolean
+  ): Promise<void> {
     const { bid, ask, targetVolume } = spreadAnalysisResult;
-    const sendTasks = [ask, bid].map(q => this.sendOrder(q, targetVolume, OrderType.Limit));
+    const sendTasks = [ask, bid].map((q) =>
+      this.sendOrder(q, targetVolume, OrderType.Limit)
+    );
     const orders = await Promise.all(sendTasks);
     this.status = 'Sent';
     await this.checkOrderState(orders, closable);
   }
 
-  private async checkOrderState(orders: OrderImpl[], closable: boolean): Promise<void> {
+  private async checkOrderState(
+    orders: OrderImpl[],
+    closable: boolean
+  ): Promise<void> {
     const { config } = this.configStore;
     for (const i of _.range(1, config.maxRetryCount + 1)) {
       await delay(config.orderStatusCheckInterval);
       this.log.info(t`OrderCheckAttempt`, i);
       this.log.info(t`CheckingIfBothLegsAreDoneOrNot`);
       try {
-        const refreshTasks = orders.map(o => this.brokerAdapterRouter.refresh(o));
+        const refreshTasks = orders.map((o) =>
+          this.brokerAdapterRouter.refresh(o)
+        );
         await Promise.all(refreshTasks);
       } catch (ex) {
         this.log.warn(ex.message);
@@ -63,7 +74,7 @@ export default class PairTrader extends EventEmitter {
 
       this.printOrderSummary(orders);
 
-      if (orders.every(o => o.filled)) {
+      if (orders.every((o) => o.filled)) {
         this.log.info(t`BothLegsAreSuccessfullyFilled`);
         if (closable) {
           this.status = 'Closed';
@@ -81,14 +92,21 @@ export default class PairTrader extends EventEmitter {
       if (i === config.maxRetryCount) {
         this.status = 'MaxRetryCount breached';
         this.log.warn(t`MaxRetryCountReachedCancellingThePendingOrders`);
-        const cancelTasks = orders.filter(o => !o.filled).map(o => this.brokerAdapterRouter.cancel(o));
+        const cancelTasks = orders
+          .filter((o) => !o.filled)
+          .map((o) => this.brokerAdapterRouter.cancel(o));
         await Promise.all(cancelTasks);
         if (
-          orders.some(o => !o.filled) &&
-          _(orders).sumBy(o => o.filledSize * (o.side === OrderSide.Buy ? -1 : 1)) !== 0
+          orders.some((o) => !o.filled) &&
+          _(orders).sumBy(
+            (o) => o.filledSize * (o.side === OrderSide.Buy ? -1 : 1)
+          ) !== 0
         ) {
-          const subOrders = await this.singleLegHandler.handle(orders as OrderPair, closable);
-          if (subOrders.length !== 0 && subOrders.every(o => o.filled)) {
+          const subOrders = await this.singleLegHandler.handle(
+            orders as OrderPair,
+            closable
+          );
+          if (subOrders.length !== 0 && subOrders.every((o) => o.filled)) {
             this.printProfit(_.concat(orders, subOrders));
           }
         }
@@ -97,18 +115,31 @@ export default class PairTrader extends EventEmitter {
     }
   }
 
-  private async sendOrder(quote: Quote, targetVolume: number, orderType: OrderType): Promise<OrderImpl> {
+  private async sendOrder(
+    quote: Quote,
+    targetVolume: number,
+    orderType: OrderType
+  ): Promise<OrderImpl> {
     this.log.info(t`SendingOrderTargettingQuote`, formatQuote(quote));
-    const brokerConfig = findBrokerConfig(this.configStore.config, quote.broker);
+    const brokerConfig = findBrokerConfig(
+      this.configStore.config,
+      quote.broker
+    );
     const { config } = this.configStore;
     const { cashMarginType, leverageLevel } = brokerConfig;
-    const orderSide = quote.side === QuoteSide.Ask ? OrderSide.Buy : OrderSide.Sell;
-    const orderPrice = 
-     (quote.side === QuoteSide.Ask && config.acceptablePriceRange !== undefined)
-     ? _.round(quote.price * (1 + config.acceptablePriceRange/100)) as number
-     : (quote.side === QuoteSide.Bid && config.acceptablePriceRange !== undefined)
-     ? _.round(quote.price * (1 - config.acceptablePriceRange/100)) as number
-     : quote.price;
+    const orderSide =
+      quote.side === QuoteSide.Ask ? OrderSide.Buy : OrderSide.Sell;
+    const orderPrice =
+      quote.side === QuoteSide.Ask && config.acceptablePriceRange !== undefined
+        ? (_.round(
+            quote.price * (1 + config.acceptablePriceRange / 100)
+          ) as number)
+        : quote.side === QuoteSide.Bid &&
+          config.acceptablePriceRange !== undefined
+        ? (_.round(
+            quote.price * (1 - config.acceptablePriceRange / 100)
+          ) as number)
+        : quote.price;
     const order = new OrderImpl({
       symbol: this.configStore.config.symbol,
       broker: quote.broker,
@@ -117,14 +148,14 @@ export default class PairTrader extends EventEmitter {
       price: orderPrice,
       cashMarginType,
       type: orderType,
-      leverageLevel
+      leverageLevel,
     });
     await this.brokerAdapterRouter.send(order);
     return order;
   }
 
   private printOrderSummary(orders: OrderImpl[]) {
-    orders.forEach(o => {
+    orders.forEach((o) => {
       if (o.filled) {
         this.log.info(OrderUtil.toExecSummary(o));
       } else {
