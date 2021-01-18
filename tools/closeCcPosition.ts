@@ -9,7 +9,7 @@ options.enabled = false;
 async function main() {
   const config = getConfigRoot();
   const ccConfig = findBrokerConfig(config, 'Coincheck');
-  const ccApi = new CoincheckApi(ccConfig.key, ccConfig.secret);
+  const ccApi = new CoincheckApi(ccConfig.key ?? '', ccConfig.secret ?? '', false);
   const positions = await ccApi.getAllOpenLeveragePositions();
   for (const position of positions) {
     const request = {
