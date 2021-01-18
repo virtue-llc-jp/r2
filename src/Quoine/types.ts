@@ -120,6 +120,16 @@ export class PriceLevelsResponse extends Castable {
   sell_price_levels: number[][];
 }
 
+export class LadderResponse extends Castable {
+  @cast
+  @element(Array, Number)
+  asks: number[][];
+  @cast
+  @element(Array, Number)
+  bids: number[][];
+  @cast timestamp: number;
+}
+
 export type CloseAllResponse = ClosingTrade[];
 export class ClosingTrade extends Castable {
   @cast id: number;

@@ -1,3 +1,4 @@
+import { getLogger } from '@bitr/logger';
 import { nonce, safeQueryStringStringify } from '../util';
 import WebClient from '../WebClient';
 import {
@@ -7,6 +8,7 @@ import {
   OrdersResponse,
   TradingAccountsResponse,
   PriceLevelsResponse,
+  LadderResponse,
   TradingAccount,
   CloseAllResponse,
   ClosingTrade,
@@ -14,12 +16,66 @@ import {
   AccountBalance
 } from './types';
 import * as jwt from 'jsonwebtoken';
-
+import { TapClient, CLIENT_EVENTS } from 'liquid-tap';
+ 
 export default class BrokerApi {
+  private readonly log = getLogger('Quoine.BrokerApi');
   private readonly baseUrl = 'https://api.liquid.com';
   private readonly webClient: WebClient = new WebClient(this.baseUrl);
+  private tap: TapClient;
+  private bidMap: Map<number, number>;
+  private askMap: Map<number, number>;
 
-  constructor(private readonly key: string, private readonly secret: string) {}
+  constructor(private readonly key: string, private readonly secret: string, private readonly useWebSocket: boolean) {
+    if (useWebSocket) {
+      this.bidMap = new Map<number, number>();
+      this.askMap = new Map<number, number>();
+      this.tap = new TapClient({
+        auth: {
+          tokenId: key,
+          tokenSecret: secret
+        }
+      });
+      this.tap.bind(CLIENT_EVENTS.CONNECTED, () => {
+        this.log.debug('connected');
+        this.bidMap.clear();
+        this.askMap.clear();
+      });
+      this.tap.bind(CLIENT_EVENTS.DISCONNECTED, () => {
+        this.log.debug('disconnected');
+        this.bidMap.clear();
+        this.askMap.clear();
+      });
+      const chLadder = this.tap.subscribe('price_ladders_cash_btcjpy');
+      chLadder.bind('updated', (data) => {
+        this.bidMap.clear();
+        this.askMap.clear();
+        const orderbook = JSON.parse(data.toString()) as LadderResponse;
+        if (orderbook.bids) {
+          orderbook.bids.forEach(q => {
+            q[0] = Number(q[0]);
+            q[1] = Number(q[1]);
+            if (q[1] === 0) {
+              this.bidMap.delete(q[0]);
+            } else {
+              this.bidMap.set(q[0], q[1]);
+            }
+          });
+        }
+        if (orderbook.asks) {
+          orderbook.asks.forEach(q => {
+            q[0] = Number(q[0]);
+            q[1] = Number(q[1]);
+            if (q[1] === 0) {
+              this.askMap.delete(q[0]);
+            } else {
+              this.askMap.set(q[0], q[1]);
+            }
+          });
+        }
+      });
+    }
+  }
 
   async sendOrder(request: SendOrderRequest): Promise<SendOrderResponse> {
     const path = '/orders/';
@@ -49,6 +105,14 @@ export default class BrokerApi {
   }
 
   async getPriceLevels(): Promise<PriceLevelsResponse> {
+    if (this.useWebSocket) {
+      // Web-socket version
+      const bids = this.bidMap ? Array.from(this.bidMap.entries()) : [];
+      const asks = this.askMap ? Array.from(this.askMap.entries()) : [];
+      const res = new PriceLevelsResponse({ buy_price_levels: bids, sell_price_levels: asks });
+      return res;
+    }
+    // Fetch version
     const path = '/products/5/price_levels';
     return new PriceLevelsResponse(await this.webClient.fetch<PriceLevelsResponse>(path, undefined, false));
   }
