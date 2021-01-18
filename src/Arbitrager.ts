@@ -53,7 +53,6 @@ export default class Arbitrager {
       return;
     }
     this.positionService.print();
-    this.log.info({ hidden: true }, 'ARBITRAGER:');
     await this.arbitrage(quotes);
   }
 

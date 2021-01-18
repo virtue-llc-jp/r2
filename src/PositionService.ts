@@ -17,6 +17,8 @@ export default class PositionService extends EventEmitter {
   private isRefreshing: boolean;
   private _positionMap: BrokerMap<BrokerPosition>;
   private retryCount: number;
+  private previousInfoMsg: string;
+  private previousDebugMsg: string;
 
   constructor(
     @inject(symbols.ConfigStore) private readonly configStore: ConfigStore,
@@ -50,13 +52,22 @@ export default class PositionService extends EventEmitter {
       `${t`LongAllowed`}: ${isOk(brokerPosition.longAllowed)}, ` +
       `${t`ShortAllowed`}: ${isOk(brokerPosition.shortAllowed)}`;
 
-    this.log.info({ hidden: true }, 'POSITION:');
-    this.log.info({ hidden: true }, `Net Exposure: ${_.round(this.netExposure, 3)} ${baseCcy}`);
+    let infoMsg = 'POSITION:\n';
+    infoMsg += `Net Exposure: ${_.round(this.netExposure, 3)} ${baseCcy}\n`;
     _.each(this.positionMap, (position: BrokerPosition) => {
       const stability = this.brokerStabilityTracker.stability(position.broker);
-      this.log.info({ hidden: true }, `${formatBrokerPosition(position)} (Stability: ${stability})`);
+      infoMsg += `${formatBrokerPosition(position)} (Stability: ${stability})\n`;
     });
-    this.log.debug(JSON.stringify(this.positionMap));
+    if (this.previousInfoMsg !== infoMsg) {
+      this.log.info({ hidden: true }, infoMsg);
+      this.previousInfoMsg = infoMsg;
+    }
+
+    const debugMsg = JSON.stringify(this.positionMap);
+    if (this.previousDebugMsg !== debugMsg) {
+      this.log.debug(debugMsg);
+      this.previousDebugMsg = debugMsg;
+    }
   }
 
   get netExposure() {

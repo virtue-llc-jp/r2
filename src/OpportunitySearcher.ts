@@ -12,7 +12,7 @@ import {
   PairSummary
 } from './types';
 import t from './intl';
-import { padEnd, formatQuote } from './util';
+import { formatQuote } from './util';
 import symbols from './symbols';
 import PositionService from './PositionService';
 import SpreadAnalyzer from './SpreadAnalyzer';
@@ -22,10 +22,13 @@ import { calcProfit } from './pnl';
 import OrderImpl from './OrderImpl';
 import { LOT_MIN_DECIMAL_PLACE } from './constants';
 import * as OrderUtil from './OrderUtil';
+import { format } from 'util';
 
 @injectable()
 export default class OppotunitySearcher extends EventEmitter {
   private readonly log = getLogger(this.constructor.name);
+  private previousMsg: string;
+  private previousLog: string;
 
   constructor(
     @inject(symbols.ConfigStore) private readonly configStore: ConfigStore,
@@ -61,7 +64,10 @@ export default class OppotunitySearcher extends EventEmitter {
       const limitCheckResult = this.limitCheckerFactory.create(spreadAnalysisResult).check();
       if (!limitCheckResult.success) {
         this.status = limitCheckResult.reason;
-        this.log.info(limitCheckResult.message);
+        if (this.previousLog !== limitCheckResult.message) {
+          this.log.info(limitCheckResult.message);
+          this.previousLog = limitCheckResult.message;
+        }
         this.emit('limitCheckDone', limitCheckResult);
         return { found: false };
       }
@@ -159,18 +165,19 @@ export default class OppotunitySearcher extends EventEmitter {
   }
 
   private printSpreadAnalysisResult(result: SpreadAnalysisResult) {
-    const columnWidth = 17;
-    this.log.info({ hidden: true }, '%s: %s', padEnd(t`BestAsk`, columnWidth), formatQuote(result.ask));
-    this.log.info({ hidden: true }, '%s: %s', padEnd(t`BestBid`, columnWidth), formatQuote(result.bid));
-    this.log.info({ hidden: true }, '%s: %s', padEnd(t`Spread`, columnWidth), -result.invertedSpread);
-    this.log.info({ hidden: true }, '%s: %s', padEnd(t`AvailableVolume`, columnWidth), result.availableVolume);
-    this.log.info({ hidden: true }, '%s: %s', padEnd(t`TargetVolume`, columnWidth), result.targetVolume);
-    this.log.info(
-      { hidden: true },
-      '%s: %s (%s%%)',
-      padEnd(t`ExpectedProfit`, columnWidth),
+    const msg = format(
+      'BestBid/Ask: %s/%s (Spread=%s) / AvailableVolume=%s/TargetVolume=%s -> ExprectedProfit: %s (%s%%)',
+      formatQuote(result.bid),
+      formatQuote(result.ask),
+      -result.invertedSpread,
+      result.availableVolume,
+      result.targetVolume,
       result.targetProfit,
       result.profitPercentAgainstNotional
     );
+    if (this.previousMsg !== msg) {
+      this.log.info({ hidden: true}, msg);
+      this.previousMsg = msg;
+    }
   }
 } /* istanbul ignore next */
