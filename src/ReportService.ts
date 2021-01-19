@@ -13,7 +13,7 @@ import { getLogger } from '@bitr/logger';
 import { cwd } from './util';
 import { Duration, DateTime } from 'luxon';
 import { SnapshotResponder } from './messages';
-import { ZmqPublisher } from '@bitr/zmq';
+import { ZmqPublisher } from './zmq';
 
 const writeFile = promisify(fs.writeFile);
 
