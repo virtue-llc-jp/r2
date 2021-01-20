@@ -12,7 +12,7 @@ interface LogObject {
   hidden: boolean;
 }
 
-const dateFormat = 'YYYY-MM-DD HH:mm:ss.SSS';
+const dateFormat = 'yyyy-MM-dd HH:mm:ss.SSS';
 
 const levels = {
   default: 'USERLVL',
@@ -56,7 +56,8 @@ export function pretty(opts: { colorize: boolean; withLabel: boolean; debug: boo
       const labelString = withLabel ? `[${logObj.label}] ` : '';
       return `${dateString} ${levelString} ${labelString}${logObj.msg}${EOL}`;
     } catch (ex) {
-      return '';
+      // return '';
+      return ex.toString();
     }
   });
   return stream;

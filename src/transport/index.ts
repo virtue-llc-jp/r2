@@ -43,9 +43,9 @@ const debugFile = fs.createWriteStream('logs/debug.log', { flags: 'a' });
 process.stdin.pipe(pretty({ colorize: false, withLabel: true, debug: true, hidden: false })).pipe(debugFile);
 
 // info.log
-const infoTransform = process.stdin.pipe(pretty({ colorize: false, withLabel: true, debug: false, hidden: false }));
+let infoTransform = pretty({ colorize: false, withLabel: true, debug: false, hidden: false });
 const infoFile = fs.createWriteStream('logs/info.log', { flags: 'a' });
-infoTransform.pipe(infoFile);
+process.stdin.pipe(infoTransform).pipe(infoFile);
 
 // notification integrations
 if (configRoot) {
