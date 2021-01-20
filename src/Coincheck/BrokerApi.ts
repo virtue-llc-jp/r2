@@ -194,11 +194,12 @@ export default class BrokerApi {
     return transactions;
   }
 
-  private call<R>(path: string, method: string, body: string = ''): Promise<R> {
+  private call<R>(path: string, method: string, body?: string): Promise<R> {
     const n = nonce();
     const url = this.baseUrl + path;
-    const message = n + url + body;
+    const message = n + url + (body ?? '');
     const sign = hmac(this.secret, message);
+    // this.log.debug(`path=${path}, method=${method}, body=${body}, message=${message}, sign=${sign}`);
     const headers = {
       'ACCESS-KEY': this.key,
       'ACCESS-NONCE': n,

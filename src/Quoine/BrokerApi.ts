@@ -123,7 +123,7 @@ export default class BrokerApi {
     return response.map(x => new ClosingTrade(x));
   }
 
-  private async call<R>(path: string, method: string, body: string = ''): Promise<R> {
+  private async call<R>(path: string, method: string, body?: string): Promise<R> {
     const n = nonce();
     const payload = {
       path,
