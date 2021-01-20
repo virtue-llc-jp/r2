@@ -15,11 +15,11 @@ interface LogObject {
 const dateFormat = 'yyyy-MM-dd HH:mm:ss.SSS';
 
 const levels = {
-  default: 'USER ',
+  default: 'USERLVL',
   60: 'FATAL',
   50: 'ERROR',
-  40: 'WARN ',
-  30: 'INFO ',
+  40: 'WARN',
+  30: 'INFO',
   20: 'DEBUG',
   10: 'TRACE'
 };
@@ -54,7 +54,7 @@ export function pretty(opts: { colorize: boolean; withLabel: boolean; debug: boo
       const dateString = formatDate(new Date(logObj.time), dateFormat);
       const levelString = levelColors[logObj.level](levels[logObj.level]);
       const labelString = withLabel ? `[${logObj.label}] ` : '';
-      return `${dateString} [${levelString}] ${labelString}${logObj.msg}${EOL}`;
+      return `${dateString} ${levelString} ${labelString}${logObj.msg}${EOL}`;
     } catch (ex) {
       // return '';
       return ex.toString();
@@ -77,7 +77,7 @@ export function splitToJson() {
       return JSON.stringify({
         time: logObj.time,
         level: levels[logObj.level],
-        msg: logObj.msg
+        msg: `[${logObj.label}] ${logObj.msg}`
       });
     } catch (ex) {
       return '';
