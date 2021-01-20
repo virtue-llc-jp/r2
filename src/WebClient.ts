@@ -10,13 +10,17 @@ export default class WebClient {
   async fetch<T>(
     path: string,
     init: FetchRequestInit = { timeout: WebClient.fetchTimeout },
-    verbose: boolean = true
+    verbose: boolean = false
   ): Promise<T> {
     const url = this.baseUrl + path;
-    this.log.debug(`Sending HTTP request... URL: ${url} Request: ${JSON.stringify(init)}`);
+    if (verbose) {
+      this.log.debug(`Sending HTTP request... URL: ${url} Request: ${JSON.stringify(init)}`);
+    }
     const res = await fetch(url, init);
-    let logText = `Response from ${res.url}. ` + `Status Code: ${res.status} (${res.statusText}) `;
-    this.log.debug(logText);
+    let logText = `Response from ${res.url}. Status Code: ${res.status} (${res.statusText}) `;
+    if (verbose) {
+      this.log.debug(logText);
+    }
     const content = await res.text();
     if (!res.ok) {
       logText += `Content: ${content}`;

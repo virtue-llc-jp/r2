@@ -237,7 +237,7 @@ export default class OppotunitySearcher extends EventEmitter {
 
   private printSpreadAnalysisResult(result: SpreadAnalysisResult) {
     const msg = format(
-      'BestBid/Ask: %s/%s (Spread=%s) / AvailableVolume=%s/TargetVolume=%s -> ExprectedProfit: %s (%s%%)',
+      'BestBid/Ask: %s/%s (Spread=%s) / AvailableVolume=%s/TargetVolume=%s -> ExpectedProfit: %s (%s%%)',
       formatQuote(result.bid),
       formatQuote(result.ask),
       -result.invertedSpread,
