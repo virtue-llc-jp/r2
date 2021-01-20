@@ -36,7 +36,7 @@ try {
 }
 
 // console output
-process.stdin.pipe(pretty({ colorize: true, withLabel: false, debug: false, hidden: false })).pipe(process.stdout);
+process.stdin.pipe(pretty({ colorize: true, withLabel: true, debug: false, hidden: false })).pipe(process.stdout);
 
 // debug.log
 const debugFile = fs.createWriteStream('logs/debug.log', { flags: 'a' });
