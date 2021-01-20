@@ -27,7 +27,7 @@ export default class BrokerApi {
   private askMap: Map<number, number>;
 
   constructor(private readonly key: string, private readonly secret: string, private readonly useWebSocket: boolean) {
-    if (useWebSocket) {
+    if (this.useWebSocket) {
       this.bidMap = new Map<number, number>();
       this.askMap = new Map<number, number>();
       this.tap = new TapClient({

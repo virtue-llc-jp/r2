@@ -1,7 +1,7 @@
 import { EOL } from 'os';
 import * as split from 'split2';
 import * as Parse from 'fast-json-parse';
-import chalk from 'chalk';
+import * as chalk  from 'chalk';
 import { format as formatDate } from 'date-fns';
 
 interface LogObject {
@@ -26,8 +26,8 @@ const levels = {
 
 export function pretty(opts: { colorize: boolean; withLabel: boolean; debug: boolean; hidden: boolean }) {
   const { colorize, withLabel, debug, hidden } = opts;
-  const ctx = new chalk.constructor({
-    enabled: !!(chalk.supportsColor && colorize)
+  const ctx = new chalk.Instance({
+    level: colorize ? chalk.supportsColor ? chalk.supportsColor.level : 0 : 0
   });
   const levelColors = {
     default: ctx.white,

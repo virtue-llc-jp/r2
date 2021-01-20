@@ -28,7 +28,7 @@ async function main() {
     ccConfig.secret ?? '',
     false
   );
-  const quApi = new QuoineApi(quConfig.key ?? '', quConfig.secret ?? '');
+  const quApi = new QuoineApi(quConfig.key ?? '', quConfig.secret ?? '', false);
   const bbApi = new BitbankccApi(bbConfig.key ?? '', bbConfig.secret ?? '');
   const bxApi = BXCreate({
     broker: bxConfig.broker,

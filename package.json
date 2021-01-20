@@ -31,7 +31,7 @@
     "decimal.js": "^10.2.1",
     "express": "^4.16.2",
     "fast-json-parse": "^1.0.3",
-    "i18next": "^19.8.4",
+    "i18next": "^10.6.0",
     "inversify": "^5.0.5",
     "jsonwebtoken": "^8.5.1",
     "level": "^6.0.1",
@@ -50,13 +50,13 @@
     "split2": "^3.2.2",
     "uuid": "^8.3.2",
     "ws": "^7.4.2",
-    "zeromq": "^6.0.0-beta.6"
+    "zeromq": "^5.2.0"
   },
   "devDependencies": {
     "@types/chalk": "^2.2.0",
     "@types/decimal.js": "^7.4.0",
     "@types/express": "^4.17.11",
-    "@types/i18next": "^13.0.0",
+    "@types/i18next": "^8.4.6",
     "@types/jest": "^26.0.20",
     "@types/jsonwebtoken": "^8.5.0",
     "@types/lodash": "^4.14.168",

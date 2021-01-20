@@ -15,7 +15,8 @@
     "moduleResolution": "node",
     "experimentalDecorators": true,
     "emitDecoratorMetadata": true,
-    "pretty": true
+    "pretty": true,
+    "esModuleInterop": false
   },
   "files": [
     "./node_modules/@types/node/index.d.ts"
