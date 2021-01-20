@@ -36,16 +36,22 @@ try {
 }
 
 // console output
-process.stdin.pipe(pretty({ colorize: true, withLabel: true, debug: false, hidden: false })).pipe(process.stdout);
+process.stdin.pipe(pretty({
+  colorize: true, withLabel: true, debug: false, info: false, hidden: false
+})).pipe(process.stdout);
+
+// info.log
+let infoTransform = pretty({
+  colorize: false, withLabel: true, debug: false, info: true, hidden: false
+});
+const infoFile = fs.createWriteStream('logs/info.log', { flags: 'a' });
+process.stdin.pipe(infoTransform).pipe(infoFile);
 
 // debug.log
 const debugFile = fs.createWriteStream('logs/debug.log', { flags: 'a' });
-process.stdin.pipe(pretty({ colorize: false, withLabel: true, debug: true, hidden: false })).pipe(debugFile);
-
-// info.log
-let infoTransform = pretty({ colorize: false, withLabel: true, debug: false, hidden: false });
-const infoFile = fs.createWriteStream('logs/info.log', { flags: 'a' });
-process.stdin.pipe(infoTransform).pipe(infoFile);
+process.stdin.pipe(pretty({
+  colorize: false, withLabel: true, debug: true, info: true, hidden: false
+})).pipe(debugFile);
 
 // notification integrations
 if (configRoot) {

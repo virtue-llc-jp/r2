@@ -24,8 +24,10 @@ const levels = {
   10: 'TRACE'
 };
 
-export function pretty(opts: { colorize: boolean; withLabel: boolean; debug: boolean; hidden: boolean }) {
-  const { colorize, withLabel, debug, hidden } = opts;
+export function pretty(opts: {
+    colorize: boolean; withLabel: boolean; debug: boolean; info: boolean; hidden: boolean
+  }) {
+  const { colorize, withLabel, debug, info, hidden } = opts;
   const ctx = new chalk.Instance({
     level: colorize ? chalk.supportsColor ? chalk.supportsColor.level : 0 : 0
   });
@@ -46,6 +48,9 @@ export function pretty(opts: { colorize: boolean; withLabel: boolean; debug: boo
         return json + EOL;
       }
       if (!debug && logObj.level <= 20) {
+        return '';
+      }
+      if (!info && logObj.level <= 30) {
         return '';
       }
       if (hidden && logObj.hidden) {
