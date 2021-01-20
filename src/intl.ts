@@ -2,6 +2,9 @@ import * as i18next from 'i18next';
 import { en, ja } from './stringResources';
 import { getConfigRoot } from './configUtil';
 
+// Workaround; https://github.com/i18next/i18next/issues/1271
+const i18Next: i18next.i18n = i18next as any as i18next.i18n;
+
 let lng = 'en';
 
 try {
@@ -10,7 +13,7 @@ try {
   console.log(ex.message);
 }
 
-i18next.init({
+i18Next.init({
   lng,
   fallbackLng: 'en',
   resources: {
@@ -24,5 +27,5 @@ i18next.init({
 });
 
 export default function translateTaggedTemplate(strings: TemplateStringsArray, ...keys: string[]): string {
-  return i18next.t(strings.raw[0]);
+  return i18Next.t(strings.raw[0]);
 }

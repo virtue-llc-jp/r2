@@ -1,6 +1,5 @@
 ﻿import { getLogger } from '@bitr/logger';
 import t from './intl';
-import 'reflect-metadata';
 import symbols from './symbols';
 import { BrokerAdapter, ConfigStore } from './types';
 import { Container } from 'inversify';
