@@ -1,6 +1,9 @@
 import { ComponentFixture, TestBed, waitForAsync } from "@angular/core/testing";
 import { WsService } from "../ws.service";
 import { MainViewComponent } from "./main-view.component";
+import { LogViewComponent } from "./log-view/log-view.component";
+import { LogService } from "../log.service";
+import { PositionComponent } from "./position/position.component";
 
 const wsServiceStub = {
   connect() {},
@@ -15,6 +18,24 @@ const wsServiceStub = {
       };
     },
   },
+  position$: {
+    subscribe(x) {
+      return {
+        unsubscribe() {},
+      };
+    },
+  },
+};
+
+const logServiceStub = {
+  connect() {},
+  log$: {
+    subscribe(x) {
+      return {
+        unsubscribe() {},
+      };
+    },
+  },
 };
 
 describe("MainViewComponent", () => {
@@ -24,8 +45,11 @@ describe("MainViewComponent", () => {
   beforeEach(
     waitForAsync(() => {
       TestBed.configureTestingModule({
-        declarations: [MainViewComponent],
-        providers: [{ provide: WsService, useValue: wsServiceStub }],
+        declarations: [MainViewComponent, LogViewComponent, PositionComponent],
+        providers: [
+          { provide: WsService, useValue: wsServiceStub },
+          { provide: LogService, useValue: logServiceStub },
+        ],
       }).compileComponents();
     })
   );

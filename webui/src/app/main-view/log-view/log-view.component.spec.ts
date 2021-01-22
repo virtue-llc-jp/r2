@@ -1,7 +1,7 @@
 import { ComponentFixture, TestBed, waitForAsync } from '@angular/core/testing';
-
 import { LogViewComponent } from './log-view.component';
 import { LogService } from '../../log.service';
+import { LoadingComponent } from '../../shared/loading/loading.component';
 
 const logServiceStub = {
   connect() {},
@@ -20,7 +20,7 @@ describe('LogViewComponent', () => {
 
   beforeEach(waitForAsync(() => {
     TestBed.configureTestingModule({
-      declarations: [ LogViewComponent ],
+      declarations: [ LogViewComponent, LoadingComponent ],
       providers: [ {provide: LogService, useValue: logServiceStub}]
     })
     .compileComponents();
