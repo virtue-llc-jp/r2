@@ -4,6 +4,11 @@ import { MainViewComponent } from "./main-view.component";
 import { LogViewComponent } from "./log-view/log-view.component";
 import { LogService } from "../log.service";
 import { PositionComponent } from "./position/position.component";
+import { DepthComponent } from "./depth/depth.component";
+import { DepthService } from "../depth.service";
+import { ActivePairComponent } from "./active-pair/active-pair.component";
+import { SpreadAnalysisComponent } from "./spread-analysis/spread-analysis.component";
+import { LoadingComponent } from "../shared/loading/loading.component";
 
 const wsServiceStub = {
   connect() {},
@@ -25,6 +30,24 @@ const wsServiceStub = {
       };
     },
   },
+  activePair$: {
+    subscribe(x) {
+      return {
+        unsubscribe() {},
+      };
+    },
+  },
+  limitCheck$: {
+    subscribe(x) {}
+  },
+  spread$: {
+    subscribe(x) {
+      return {
+        add(x) {},
+        unsubscribe() {}
+      }
+    }
+  }
 };
 
 const logServiceStub = {
@@ -38,6 +61,16 @@ const logServiceStub = {
   },
 };
 
+const depthServiceStub = {
+  depth$: {
+    subscribe(x) {
+      return {
+        unsubscribe() {}
+      }
+    }
+  }
+}
+
 describe("MainViewComponent", () => {
   let component: MainViewComponent;
   let fixture: ComponentFixture<MainViewComponent>;
@@ -45,9 +78,10 @@ describe("MainViewComponent", () => {
   beforeEach(
     waitForAsync(() => {
       TestBed.configureTestingModule({
-        declarations: [MainViewComponent, LogViewComponent, PositionComponent],
+        declarations: [MainViewComponent, LogViewComponent, PositionComponent, DepthComponent, ActivePairComponent, SpreadAnalysisComponent, LoadingComponent],
         providers: [
           { provide: WsService, useValue: wsServiceStub },
+          { provide: DepthService, useValue: depthServiceStub },
           { provide: LogService, useValue: logServiceStub },
         ],
       }).compileComponents();
