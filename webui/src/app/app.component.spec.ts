@@ -1,4 +1,4 @@
-import { TestBed, async } from '@angular/core/testing';
+import { TestBed, waitForAsync } from '@angular/core/testing';
 import { AppComponent } from './app.component';
 import { AppRoutingModule } from './app-routing.module';
 import { ConfigFormComponent } from './config-form/config-form.component';
@@ -9,7 +9,7 @@ import { DepthSizeCellComponent } from './depth-size-cell/depth-size-cell.compon
 import { DepthBrokerCellComponent } from './depth-broker-cell/depth-broker-cell.component';
 import { DepthComponent } from './depth/depth.component';
 describe('AppComponent', () => {
-  beforeEach(async(() => {
+  beforeEach(waitForAsync(() => {
     TestBed.configureTestingModule({
       declarations: [
         AppComponent,
@@ -23,7 +23,7 @@ describe('AppComponent', () => {
       ],  imports: [AppRoutingModule]
     }).compileComponents();
   }));
-  it('should create the app', async(() => {
+  it('should create the app', waitForAsync(() => {
     const fixture = TestBed.createComponent(AppComponent);
     const app = fixture.debugElement.componentInstance;
     expect(app).toBeTruthy();

@@ -11,7 +11,7 @@ import { Subscription } from 'rxjs/Subscription';
 })
 export class LogViewComponent implements OnInit, OnDestroy {
   private subscription: Subscription;
-  @ViewChild('logContent') private logContent: ElementRef;
+  @ViewChild('logContent', { static: true }) private logContent: ElementRef;
   @Input() autoScroll: boolean = true;
   private readonly maxLogSize = 150;
   logs: LogRecord[] = [];

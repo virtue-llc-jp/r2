@@ -1,4 +1,4 @@
-import { async, ComponentFixture, TestBed } from '@angular/core/testing';
+import { ComponentFixture, TestBed, waitForAsync } from '@angular/core/testing';
 
 import { DepthSizeCellComponent } from './depth-size-cell.component';
 
@@ -6,7 +6,7 @@ describe('DepthSizeCellComponent', () => {
   let component: DepthSizeCellComponent;
   let fixture: ComponentFixture<DepthSizeCellComponent>;
 
-  beforeEach(async(() => {
+  beforeEach(waitForAsync(() => {
     TestBed.configureTestingModule({
       declarations: [ DepthSizeCellComponent ]
     })

@@ -1,4 +1,4 @@
-import { async, ComponentFixture, TestBed } from '@angular/core/testing';
+import { ComponentFixture, TestBed, waitForAsync } from '@angular/core/testing';
 
 import { DepthComponent } from './depth.component';
 
@@ -6,7 +6,7 @@ describe('DepthComponent', () => {
   let component: DepthComponent;
   let fixture: ComponentFixture<DepthComponent>;
 
-  beforeEach(async(() => {
+  beforeEach(waitForAsync(() => {
     TestBed.configureTestingModule({
       declarations: [ DepthComponent ]
     })

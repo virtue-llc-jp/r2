@@ -1,25 +1,23 @@
-import { Injectable } from '@angular/core';
-import { Subject } from 'rxjs/Subject';
-import { Observable } from 'rxjs/Observable';
-import { Observer } from 'rxjs/Observer';
-import { catchError, map, tap, filter, share } from 'rxjs/operators';
-import { Quote, WsMessage, BrokerMap, BrokerPosition, SpreadAnalysisResult, LogRecord } from './types';
-import * as ReconnectingWebSocket from 'reconnecting-websocket';
+import { Injectable } from "@angular/core";
+import * as Rx from "rxjs";
+import { map, filter, share } from "rxjs/operators";
+import { WsMessage, LogRecord } from "./types";
+import { default as ReconnectingWebSocket } from "reconnecting-websocket";
 
 @Injectable()
 export class LogService {
   private readonly host = window.location.hostname;
-  private readonly url = `ws://${this.host}:8721`; 
+  private readonly url = `ws://${this.host}:8721`;
   private connected = false;
-  log$: Observable<LogRecord>;
-  socket: Subject<MessageEvent>;
+  log$: Rx.Observable<LogRecord>;
+  socket: Rx.Subject<MessageEvent>;
 
   connect() {
     if (this.connected) {
       return;
     }
     const ws = new ReconnectingWebSocket(this.url);
-    const observable = Observable.create((obs: Observer<MessageEvent>) => {
+    const observable = new Rx.Observable((obs: Rx.Subscriber<MessageEvent>) => {
       ws.onmessage = obs.next.bind(obs);
       return ws.close.bind(ws);
     });
@@ -28,19 +26,24 @@ export class LogService {
         if (ws.readyState === WebSocket.OPEN) {
           ws.send(JSON.stringify(data));
         }
-      }
+      },
     };
-    this.socket = Subject.create(observer, observable);
+    this.socket = new Rx.Subject();
+    observable.subscribe(this.socket);
+    this.socket.subscribe(observer);
     const sharedObservable = this.socket.pipe(share());
-    this.log$ = this.mapMessage<LogRecord>(sharedObservable, 'log');
+    this.log$ = this.mapMessage<LogRecord>(sharedObservable, "log");
     this.connected = true;
   }
 
-  private mapMessage<T>(sharedObservable: Observable<MessageEvent>, type: string) {
+  private mapMessage<T>(
+    sharedObservable: Rx.Observable<MessageEvent>,
+    type: string
+  ) {
     return sharedObservable.pipe(
-      map(x => JSON.parse(x.data) as WsMessage<string>),
-      filter(x => x.type === type),
-      map(x => JSON.parse(x.body))
+      map((x) => JSON.parse(x.data) as WsMessage<string>),
+      filter((x) => x.type === type),
+      map((x) => JSON.parse(x.body))
     );
   }
 }
