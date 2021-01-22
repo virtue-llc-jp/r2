@@ -12,7 +12,7 @@ describe('OrderService', () => {
     const orderFinalized = jest.fn();
     os.on('orderCreated', o => {
       orderCreated(o);
-      console.log(o);
+      // console.log(o);
     });
     os.on('orderUpdated', orderUpdated);
     os.on('orderFinalized', orderFinalized);

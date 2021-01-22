@@ -69,9 +69,9 @@ export default class BrokerApi {
     return new BoardResponse(await this.webClient.fetch<BoardResponse>(path, undefined, false));
   }
 
-  private async call<R>(path: string, method: string, body: string = ''): Promise<R> {
+  private async call<R>(path: string, method: string, body?: string): Promise<R> {
     const n = nonce();
-    const message = n + method + path + body;
+    const message = n + method + path + (body ?? '');
     const sign = hmac(this.secret, message);
     const headers = {
       'Content-Type': 'application/json',
