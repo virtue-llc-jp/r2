@@ -1,6 +1,17 @@
 import { ComponentFixture, TestBed, waitForAsync } from '@angular/core/testing';
-
+import { WsService } from '../../ws.service';
 import { PositionComponent } from './position.component';
+
+const wsServiceStub = {
+  connect() {},
+  position$: {
+    subscribe(x) {
+      return {
+        unsubscribe() {}
+      }
+    }
+  }
+}
 
 describe('PositionComponent', () => {
   let component: PositionComponent;
@@ -8,7 +19,8 @@ describe('PositionComponent', () => {
 
   beforeEach(waitForAsync(() => {
     TestBed.configureTestingModule({
-      declarations: [ PositionComponent ]
+      declarations: [ PositionComponent ],
+      providers: [ {provide: WsService, useValue: wsServiceStub}],
     })
     .compileComponents();
   }));

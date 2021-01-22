@@ -16,6 +16,7 @@ describe('DepthSizeCellComponent', () => {
   beforeEach(() => {
     fixture = TestBed.createComponent(DepthSizeCellComponent);
     component = fixture.componentInstance;
+    component.sizeCells = [];
     fixture.detectChanges();
   });
 

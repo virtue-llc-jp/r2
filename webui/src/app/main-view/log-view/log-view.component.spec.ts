@@ -1,10 +1,17 @@
 import { ComponentFixture, TestBed, waitForAsync } from '@angular/core/testing';
 
 import { LogViewComponent } from './log-view.component';
-import { LogService } from '../log.service';
+import { LogService } from '../../log.service';
 
 const logServiceStub = {
-  connect: []
+  connect() {},
+  log$: {
+    subscribe(x) {
+      return {
+        unsubscribe() {}
+      }
+    }
+  }
 }
 
 describe('LogViewComponent', () => {

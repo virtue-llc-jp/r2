@@ -1,7 +1,5 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
 import { WsService } from '../ws.service';
-import { Observable } from 'rxjs/Observable';
-import { ConfigRoot } from '../types';
 import { Subscription } from 'rxjs/Subscription';
 
 @Component({

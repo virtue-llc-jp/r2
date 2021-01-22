@@ -1,6 +1,16 @@
 import { ComponentFixture, TestBed, waitForAsync } from '@angular/core/testing';
-
 import { DepthComponent } from './depth.component';
+import { DepthService } from '../../depth.service';
+
+const depthServiceStub = {
+  depth$: {
+    subscribe(x) {
+      return {
+        unsubscribe() {}
+      }
+    }
+  }
+}
 
 describe('DepthComponent', () => {
   let component: DepthComponent;
@@ -8,7 +18,8 @@ describe('DepthComponent', () => {
 
   beforeEach(waitForAsync(() => {
     TestBed.configureTestingModule({
-      declarations: [ DepthComponent ]
+      declarations: [ DepthComponent ],
+      providers: [{provide: DepthService, useValue: depthServiceStub}],
     })
     .compileComponents();
   }));

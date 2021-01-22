@@ -1,6 +1,21 @@
 import { ComponentFixture, TestBed, waitForAsync } from '@angular/core/testing';
-
+import { WsService } from '../../ws.service';
 import { SpreadAnalysisComponent } from './spread-analysis.component';
+
+const wsServiceStub = {
+  connect() {},
+  limitCheck$: {
+    subscribe(x) {}
+  },
+  spread$: {
+    subscribe(x) {
+      return {
+        add(x) {},
+        unsubscribe() {}
+      }
+    }
+  }
+}
 
 describe('SpreadAnalysisComponent', () => {
   let component: SpreadAnalysisComponent;
@@ -8,7 +23,8 @@ describe('SpreadAnalysisComponent', () => {
 
   beforeEach(waitForAsync(() => {
     TestBed.configureTestingModule({
-      declarations: [ SpreadAnalysisComponent ]
+      declarations: [ SpreadAnalysisComponent ],
+      providers: [ {provide: WsService, useValue: wsServiceStub}],
     })
     .compileComponents();
   }));

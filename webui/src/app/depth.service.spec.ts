@@ -1,11 +1,18 @@
 import { TestBed, inject } from '@angular/core/testing';
-
+import { WsService } from './ws.service';
 import { DepthService } from './depth.service';
+
+const wsServiceStub = {
+  connect() {},
+  quote$: {
+    pipe(x) {}
+  }
+}
 
 describe('DepthService', () => {
   beforeEach(() => {
     TestBed.configureTestingModule({
-      providers: [DepthService]
+      providers: [DepthService, {provide: WsService, useValue: wsServiceStub}]
     });
   });
 

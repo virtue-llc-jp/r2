@@ -16,6 +16,11 @@ describe('DepthPriceCellComponent', () => {
   beforeEach(() => {
     fixture = TestBed.createComponent(DepthPriceCellComponent);
     component = fixture.componentInstance;
+    component.priceCell = {
+      value: 0,
+      askTradable: true,
+      bidTradable: true
+    }
     fixture.detectChanges();
   });
 

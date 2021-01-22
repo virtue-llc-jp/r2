@@ -1,6 +1,17 @@
 import { ComponentFixture, TestBed, waitForAsync } from '@angular/core/testing';
-
+import { WsService } from '../../ws.service';
 import { ActivePairComponent } from './active-pair.component';
+
+const wsServiceStub = {
+  connect() {},
+  activePair$: {
+    subscribe(x) {
+      return {
+        unsubscribe() {}
+      }
+    }
+  }
+}
 
 describe('ActivePairComponent', () => {
   let component: ActivePairComponent;
@@ -8,7 +19,8 @@ describe('ActivePairComponent', () => {
 
   beforeEach(waitForAsync(() => {
     TestBed.configureTestingModule({
-      declarations: [ ActivePairComponent ]
+      declarations: [ ActivePairComponent ],
+      providers: [ {provide: WsService, useValue: wsServiceStub}],
     })
     .compileComponents();
   }));
