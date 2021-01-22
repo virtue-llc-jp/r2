@@ -12,7 +12,13 @@ export class SpreadAnalysisComponent implements OnInit, OnDestroy {
   limitCheckResult: LimitCheckResult;
   spread: SpreadAnalysisResult;
 
-  constructor(private readonly wsService: WsService) {}
+  constructor(private readonly wsService: WsService) {
+    this.limitCheckResult = {
+      success: true,
+      reason: '',
+      message: ''
+    }
+  }
 
   ngOnInit() {
     this.wsService.connect();
