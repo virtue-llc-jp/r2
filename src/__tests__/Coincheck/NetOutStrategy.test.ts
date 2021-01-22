@@ -1,8 +1,7 @@
-import { CashMarginType, OrderSide, OrderType, Broker, OrderStatus } from '../../types';
+import { CashMarginType, OrderSide, OrderType, OrderStatus } from '../../types';
 import NetOutStrategy from '../../Coincheck/NetOutStrategy';
 import BrokerApi from '../../Coincheck/BrokerApi';
 import nocksetup from './nocksetup';
-import OrderImpl from '../../OrderImpl';
 import { NewOrderRequest } from '../../Coincheck/types';
 import * as nock from 'nock';
 import { options } from '@bitr/logger';
@@ -13,13 +12,13 @@ nocksetup();
 
 describe('NetOutStrategy', () => {
   test('getBtcPosition Margin', async () => {
-    const strategy = new NetOutStrategy(new BrokerApi('', ''));
+    const strategy = new NetOutStrategy(new BrokerApi('', '', false));
     const result = await strategy.getBtcPosition();
     expect(result).toBe(-0.14007);
   });
 
   test('send fails - not NetOut order', async () => {
-    const strategy = new NetOutStrategy(new BrokerApi('', ''));
+    const strategy = new NetOutStrategy(new BrokerApi('', '', false));
     const order = createOrder(
       'Coincheck',
       OrderSide.Buy,
@@ -35,7 +34,7 @@ describe('NetOutStrategy', () => {
   });
 
   test('netout close_short', async () => {
-    const strategy = new NetOutStrategy(new BrokerApi('', ''));
+    const strategy = new NetOutStrategy(new BrokerApi('', '', false));
     const order = createOrder(
       'Coincheck',
       OrderSide.Buy, 
@@ -55,7 +54,7 @@ describe('NetOutStrategy', () => {
   });
 
   test('netout request - open buy', async () => {
-    const strategy = new NetOutStrategy(new BrokerApi('', ''));
+    const strategy = new NetOutStrategy(new BrokerApi('', '', false));
     const order = createOrder(
       'Coincheck',
       OrderSide.Buy, 
@@ -72,7 +71,7 @@ describe('NetOutStrategy', () => {
   });
 
   test('netout when no closable position', async () => {
-    const strategy = new NetOutStrategy(new BrokerApi('', ''));
+    const strategy = new NetOutStrategy(new BrokerApi('', '', false));
     const order = createOrder(
       'Coincheck', 
       OrderSide.Sell, 
@@ -92,7 +91,7 @@ describe('NetOutStrategy', () => {
   });
 
   test('netout market when no closable position', async () => {
-    const strategy = new NetOutStrategy(new BrokerApi('', ''));
+    const strategy = new NetOutStrategy(new BrokerApi('', '', false));
     const order = createOrder(
       'Coincheck', 
       OrderSide.Sell, 
@@ -110,7 +109,7 @@ describe('NetOutStrategy', () => {
   });
 
   test('netout non BTC/JPY', async () => {
-    const strategy = new NetOutStrategy(new BrokerApi('', ''));
+    const strategy = new NetOutStrategy(new BrokerApi('', '', false));
     const order = createOrder(
       'Coincheck', 
       OrderSide.Sell, 

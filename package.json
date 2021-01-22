@@ -82,6 +82,7 @@
     "typescript": "^4.1.3"
   },
   "jest": {
+    "verbose": true,
     "transform": {
       "^.+\\.tsx?$": "<rootDir>/node_modules/ts-jest/preprocessor.js"
     },
@@ -93,7 +94,6 @@
       "jsx",
       "json"
     ],
-    "mapCoverage": true,
     "collectCoverageFrom": [
       "**/*.{ts,tsx}",
       "!src/index.ts",

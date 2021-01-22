@@ -34,7 +34,7 @@ export default class MarginOpenStrategy implements CashMarginTypeStrategy {
     return eRound(longPosition - shortPosition);
   }
 
-  private getBrokerOrderType(order: Order): string {
+  getBrokerOrderType(order: Order): string {
     switch (order.side) {
       case OrderSide.Buy:
         return 'leverage_buy';

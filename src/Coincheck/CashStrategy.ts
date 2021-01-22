@@ -29,7 +29,7 @@ export default class CashStrategy implements CashMarginTypeStrategy {
     return (await this.brokerApi.getAccountsBalance()).btc;
   }
 
-  private getBrokerOrderType(order: Order): string {
+  getBrokerOrderType(order: Order): string {
     switch (order.side) {
       case OrderSide.Buy:
         switch (order.type) {

@@ -29,7 +29,7 @@ export default class NetOutStrategy implements CashMarginTypeStrategy {
     return eRound(longPosition - shortPosition);
   }
 
-  private async getNetOutRequest(order: Order): Promise<NewOrderRequest> {
+  async getNetOutRequest(order: Order): Promise<NewOrderRequest> {
     const openPositions = await this.brokerApi.getAllOpenLeveragePositions();
     const targetSide = order.side === OrderSide.Buy ? 'sell' : 'buy';
     const candidates = _(openPositions)

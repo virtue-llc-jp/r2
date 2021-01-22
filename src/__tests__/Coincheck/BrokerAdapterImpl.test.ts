@@ -2,10 +2,8 @@
 import * as nock from 'nock';
 import * as _ from 'lodash';
 import BrokerAdapterImpl from '../../Coincheck/BrokerAdapterImpl';
-import { OrderStatus, Broker, CashMarginType, OrderSide, OrderType, ConfigRoot, BrokerConfigType } from '../../types';
+import { OrderStatus, CashMarginType, OrderSide, OrderType, BrokerConfigType, TimeInForce } from '../../types';
 import nocksetup from './nocksetup';
-import OrderImpl from '../../OrderImpl';
-import { NewOrderRequest } from '../../Coincheck/types';
 import { options } from '@bitr/logger';
 import { createOrder } from '../helper';
 options.enabled = false;
@@ -40,7 +38,7 @@ describe('Coincheck BrokerAdapter', () => {
     expect(true).toBe(false);
   });
 
-  test('send leverage buy limit', async () => {
+  test('CashMarginType MarginOpen is obsoleted', async () => {
     const target = new BrokerAdapterImpl(brokerConfig);
     const order = createOrder(
       'Coincheck',
@@ -51,15 +49,15 @@ describe('Coincheck BrokerAdapter', () => {
       OrderType.Limit,
       undefined
     );
-    await target.send(order);
-    expect(order.status).toBe(OrderStatus.New);
-    expect(order.brokerOrderId).toBe('340622252');
+    try {
+      await target.send(order);
+    } catch (ex) {
+      return;
+    }
+    expect(false).toBe(true);
   });
 
   test('getBtcPosition with invalid cashMarginType', async () => {
-    const config = {
-      brokers: [{ broker: 'Coincheck', key: '', secret: '', cashMarginType: 'Invalid' as CashMarginType }]
-    } as ConfigRoot;
     const target = new BrokerAdapterImpl(brokerConfig);
     try {
       await target.getBtcPosition();
@@ -70,30 +68,35 @@ describe('Coincheck BrokerAdapter', () => {
     expect(true).toBe(false);
   });
 
-  test('getBtcPosition leverage', async () => {
+  test('getBtcPosition leverage (MarginOpen is obsoleted)', async () => {
     const target = new BrokerAdapterImpl(brokerConfig);
-    const result = await target.getBtcPosition();
-    expect(result).toBe(-0.14007);
+    try {
+      await target.getBtcPosition();
+    } catch (ex) {
+      return;
+    }
+    expect(false).toBe(true);
   });
 
   test('refresh', async () => {
     const target = new BrokerAdapterImpl(brokerConfig);
     const order = {
       symbol: 'BTC/JPY',
-      type: 'Limit',
-      timeInForce: 'None',
+      type: OrderType.Limit,
+      timeInForce: TimeInForce.None,
       id: '28f5d9f1-5e13-4bb7-845c-b1b7f02f5e64',
-      status: 'New',
-      creationTime: '2017-10-28T01:20:39.320Z',
+      status: OrderStatus.Filled,
+      creationTime: new Date('2017-10-28T01:20:39.320Z'),
       executions: [],
       broker: 'Coincheck',
       size: 0.01,
-      side: 'Buy',
+      filledSize: 0,
+      side: OrderSide.Buy,
       price: 663000,
-      cashMarginType: 'MarginOpen',
-      sentTime: '2017-10-28T01:20:39.236Z',
+      cashMarginType: CashMarginType.MarginOpen,
+      sentTime: new Date('2017-10-28T01:20:39.236Z'),
       brokerOrderId: '361173028',
-      lastUpdated: '2017-10-28T01:20:39.416Z'
+      lastUpdated: new Date('2017-10-28T01:20:39.416Z')
     };
     await target.refresh(order);
     expect(order.status).toBe(OrderStatus.Filled);
@@ -103,20 +106,21 @@ describe('Coincheck BrokerAdapter', () => {
     const target = new BrokerAdapterImpl(brokerConfig);
     const order = {
       symbol: 'BTC/JPY',
-      type: 'Limit',
-      timeInForce: 'None',
+      type: OrderType.Limit,
+      timeInForce: TimeInForce.None,
       id: '28f5d9f1-5e13-4bb7-845c-b1b7f02f5e64',
-      status: 'New',
-      creationTime: '2017-10-28T01:20:39.320Z',
+      status: OrderStatus.New,
+      creationTime: new Date('2017-10-28T01:20:39.320Z'),
       executions: [],
       broker: 'Coincheck',
       size: 0.01,
-      side: 'Buy',
+      filledSize: 0,
+      side: OrderSide.Buy,
       price: 663000,
-      cashMarginType: 'MarginOpen',
-      sentTime: '2017-10-28T01:20:39.236Z',
+      cashMarginType: CashMarginType.MarginOpen,
+      sentTime: new Date('2017-10-28T01:20:39.236Z'),
       brokerOrderId: '361173028',
-      lastUpdated: '2017-10-28T01:20:39.416Z'
+      lastUpdated: new Date('2017-10-28T01:20:39.416Z')
     };
     await target.refresh(order);
     expect(order.status).toBe(OrderStatus.PartiallyFilled);
@@ -126,20 +130,21 @@ describe('Coincheck BrokerAdapter', () => {
     const target = new BrokerAdapterImpl(brokerConfig);
     const order = {
       symbol: 'BTC/JPY',
-      type: 'Limit',
-      timeInForce: 'None',
+      type: OrderType.Limit,
+      timeInForce: TimeInForce.None,
       id: '28f5d9f1-5e13-4bb7-845c-b1b7f02f5e64',
-      status: 'New',
-      creationTime: '2017-10-28T01:20:39.320Z',
+      status: OrderStatus.New,
+      creationTime: new Date('2017-10-28T01:20:39.320Z'),
       executions: [],
       broker: 'Coincheck',
       size: 0.01,
-      side: 'Buy',
+      filledSize: 0,
+      side: OrderSide.Buy,
       price: 663000,
-      cashMarginType: 'MarginOpen',
-      sentTime: '2017-10-28T01:20:39.236Z',
+      cashMarginType: CashMarginType.MarginOpen,
+      sentTime: new Date('2017-10-28T01:20:39.236Z'),
       brokerOrderId: '361173028',
-      lastUpdated: '2017-10-28T01:20:39.416Z'
+      lastUpdated: new Date('2017-10-28T01:20:39.416Z')
     };
     try {
       await target.refresh(order);
@@ -158,7 +163,24 @@ describe('Coincheck BrokerAdapter', () => {
 
   test('send wrong broker order', async () => {
     const target = new BrokerAdapterImpl(brokerConfig);
-    const order = { broker: 'Bitflyer' };
+    const order = {
+      broker: 'Bitflyer',
+      symbol: 'BTC/JPY',
+      type: OrderType.Limit,
+      timeInForce: TimeInForce.None,
+      id: '28f5d9f1-5e13-4bb7-845c-b1b7f02f5e64',
+      status: OrderStatus.New,
+      creationTime: new Date('2017-10-28T01:20:39.320Z'),
+      executions: [],
+      size: 0.01,
+      filledSize: 0,
+      side: OrderSide.Buy,
+      price: 663000,
+      cashMarginType: CashMarginType.MarginOpen,
+      sentTime: new Date('2017-10-28T01:20:39.236Z'),
+      brokerOrderId: '361173028',
+      lastUpdated: new Date('2017-10-28T01:20:39.416Z')
+    };
     try {
       await target.send(order);
     } catch (ex) {
@@ -169,14 +191,48 @@ describe('Coincheck BrokerAdapter', () => {
 
   test('cancel', async () => {
     const target = new BrokerAdapterImpl(brokerConfig);
-    const order = { brokerOrderId: '340809935' };
+    const order = { 
+      brokerOrderId: '340809935',
+      symbol: 'BTC/JPY',
+      type: OrderType.Limit,
+      timeInForce: TimeInForce.None,
+      id: '28f5d9f1-5e13-4bb7-845c-b1b7f02f5e64',
+      status: OrderStatus.New,
+      creationTime: new Date('2017-10-28T01:20:39.320Z'),
+      executions: [],
+      broker: 'Coincheck',
+      size: 0.01,
+      filledSize: 0,
+      side: OrderSide.Buy,
+      price: 663000,
+      cashMarginType: CashMarginType.MarginOpen,
+      sentTime: new Date('2017-10-28T01:20:39.236Z'),
+      lastUpdated: new Date('2017-10-28T01:20:39.416Z')
+    };
     await target.cancel(order);
     expect(order.status).toBe(OrderStatus.Canceled);
   });
 
   test('cancel failed', async () => {
     const target = new BrokerAdapterImpl(brokerConfig);
-    const order = { brokerOrderId: '340809935' };
+    const order = {
+      brokerOrderId: '340809935',
+      symbol: 'BTC/JPY',
+      type: OrderType.Limit,
+      timeInForce: TimeInForce.None,
+      id: '28f5d9f1-5e13-4bb7-845c-b1b7f02f5e64',
+      status: OrderStatus.New,
+      creationTime: new Date('2017-10-28T01:20:39.320Z'),
+      executions: [],
+      broker: 'Coincheck',
+      size: 0.01,
+      filledSize: 0,
+      side: OrderSide.Buy,
+      price: 663000,
+      cashMarginType: CashMarginType.MarginOpen,
+      sentTime: new Date('2017-10-28T01:20:39.236Z'),
+      lastUpdated: new Date('2017-10-28T01:20:39.416Z')
+    };
     try {
       await target.cancel(order);
     } catch (ex) {

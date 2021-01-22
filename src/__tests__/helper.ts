@@ -8,7 +8,7 @@ export function createOrder(
   price: number,
   cashMarginType: CashMarginType,
   type: OrderType,
-  leverageLevel: number
+  leverageLevel?: number
 ) {
   return new OrderImpl({
     symbol: 'BTC/JPY',
@@ -18,6 +18,6 @@ export function createOrder(
     price,
     cashMarginType,
     type,
-    leverageLevel
+    leverageLevel: leverageLevel ?? 0
   });
 }
