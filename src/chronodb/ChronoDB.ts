@@ -1,6 +1,6 @@
 import * as level from 'level';
 import * as mkdirp from 'mkdirp';
-import { LevelUp } from "./types";
+import { LevelUp } from './types';
 import { TimeSeries } from './TimeSeries';
 
 export class ChronoDB {

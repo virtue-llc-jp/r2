@@ -2,9 +2,8 @@
 import * as nock from 'nock';
 import * as _ from 'lodash';
 import BrokerAdapterImpl from '../../Quoine/BrokerAdapterImpl';
-import { OrderStatus, Broker, CashMarginType, OrderSide, OrderType, BrokerConfigType } from '../../types';
+import { OrderStatus, CashMarginType, OrderSide, OrderType, BrokerConfigType, Order, TimeInForce } from '../../types';
 import nocksetup from './nocksetup';
-import OrderImpl from '../../OrderImpl';
 import { options } from '@bitr/logger';
 import { createOrder } from '../helper';
 options.enabled = false;
@@ -46,7 +45,7 @@ describe('Quoine BrokerAdapter', () => {
 
   test('send wrong broker order', async () => {
     const target = new BrokerAdapterImpl(brokerConfig);
-    const order = { broker: 'Bitflyer' };
+    const order = { broker: 'Bitflyer' } as Order;
     try {
       await target.send(order);
     } catch (ex) {
@@ -57,7 +56,7 @@ describe('Quoine BrokerAdapter', () => {
 
   test('send wrong symbol', async () => {
     const target = new BrokerAdapterImpl(brokerConfig);
-    const order = { broker: 'Quoine', symbol: 'ZZZ' };
+    const order = { broker: 'Quoine', symbol: 'ZZZ' } as Order;
     try {
       await target.send(order);
     } catch (ex) {
@@ -68,7 +67,7 @@ describe('Quoine BrokerAdapter', () => {
 
   test('send wrong order type', async () => {
     const target = new BrokerAdapterImpl(brokerConfig);
-    const order = { broker: 'Quoine', symbol: 'BTC/JPY', type: OrderType.StopLimit };
+    const order = { broker: 'Quoine', symbol: 'BTC/JPY', type: OrderType.StopLimit } as Order;
     try {
       await target.send(order);
     } catch (ex) {
@@ -84,7 +83,7 @@ describe('Quoine BrokerAdapter', () => {
       symbol: 'BTC/JPY',
       type: OrderType.Market,
       cashMarginType: CashMarginType.MarginOpen
-    };
+    } as Order;
     try {
       await target.send(order);
     } catch (ex) {
@@ -149,22 +148,22 @@ describe('Quoine BrokerAdapter', () => {
     const target = new BrokerAdapterImpl(brokerConfig);
     const order = {
       symbol: 'BTC/JPY',
-      type: 'Limit',
-      timeInForce: 'None',
+      type: OrderType.Limit,
+      timeInForce: TimeInForce.None,
       id: 'b28eaefe-84d8-4110-9917-0e9d5793d7eb',
-      status: 'New',
-      creationTime: '2017-11-06T23:46:56.635Z',
+      status: OrderStatus.New,
+      creationTime: new Date('2017-11-06T23:46:56.635Z'),
       executions: [],
       broker: 'Quoine',
       size: 0.01,
-      side: 'Buy',
+      side: OrderSide.Buy,
       price: 783000,
-      cashMarginType: 'NetOut',
+      cashMarginType: CashMarginType.NetOut,
       leverageLevel: 10,
       brokerOrderId: '118573146',
-      sentTime: '2017-11-06T23:46:56.692Z',
-      lastUpdated: '2017-11-06T23:46:56.692Z'
-    };
+      sentTime: new Date('2017-11-06T23:46:56.692Z'),
+      lastUpdated: new Date('2017-11-06T23:46:56.692Z')
+    } as Order;
     await target.refresh(order);
     expect(order.status).toBe(OrderStatus.New);
   });
@@ -173,22 +172,22 @@ describe('Quoine BrokerAdapter', () => {
     const target = new BrokerAdapterImpl(brokerConfig);
     const order = {
       symbol: 'BTC/JPY',
-      type: 'Limit',
-      timeInForce: 'None',
+      type: OrderType.Limit,
+      timeInForce: TimeInForce.None,
       id: 'b28eaefe-84d8-4110-9917-0e9d5793d7eb',
-      status: 'New',
-      creationTime: '2017-11-06T23:46:56.635Z',
+      status: OrderStatus.New,
+      creationTime: new Date('2017-11-06T23:46:56.635Z'),
       executions: [],
       broker: 'Quoine',
       size: 0.01,
-      side: 'Buy',
+      side: OrderSide.Buy,
       price: 783000,
-      cashMarginType: 'NetOut',
+      cashMarginType: CashMarginType.NetOut,
       leverageLevel: 10,
       brokerOrderId: '118573146',
-      sentTime: '2017-11-06T23:46:56.692Z',
-      lastUpdated: '2017-11-06T23:46:56.692Z'
-    };
+      sentTime: new Date('2017-11-06T23:46:56.692Z'),
+      lastUpdated: new Date('2017-11-06T23:46:56.692Z')
+    } as Order;
     await target.refresh(order);
     expect(order.status).toBe(OrderStatus.PartiallyFilled);
   });
@@ -197,22 +196,22 @@ describe('Quoine BrokerAdapter', () => {
     const target = new BrokerAdapterImpl(brokerConfig);
     const order = {
       symbol: 'BTC/JPY',
-      type: 'Limit',
-      timeInForce: 'None',
+      type: OrderType.Limit,
+      timeInForce: TimeInForce.None,
       id: 'b28eaefe-84d8-4110-9917-0e9d5793d7eb',
-      status: 'New',
-      creationTime: '2017-11-06T23:46:56.635Z',
+      status: OrderStatus.New,
+      creationTime: new Date('2017-11-06T23:46:56.635Z'),
       executions: [],
       broker: 'Quoine',
       size: 0.01,
-      side: 'Buy',
+      side: OrderSide.Buy,
       price: 783000,
-      cashMarginType: 'NetOut',
+      cashMarginType: CashMarginType.NetOut,
       leverageLevel: 10,
       brokerOrderId: '118573146',
-      sentTime: '2017-11-06T23:46:56.692Z',
-      lastUpdated: '2017-11-06T23:46:56.692Z'
-    };
+      sentTime: new Date('2017-11-06T23:46:56.692Z'),
+      lastUpdated: new Date('2017-11-06T23:46:56.692Z')
+    } as Order;
     await target.refresh(order);
     expect(order.status).toBe(OrderStatus.Filled);
   });
@@ -221,22 +220,22 @@ describe('Quoine BrokerAdapter', () => {
     const target = new BrokerAdapterImpl(brokerConfig);
     const order = {
       symbol: 'BTC/JPY',
-      type: 'Limit',
-      timeInForce: 'None',
+      type: OrderType.Limit,
+      timeInForce: TimeInForce.None,
       id: 'b28eaefe-84d8-4110-9917-0e9d5793d7eb',
-      status: 'New',
-      creationTime: '2017-11-06T23:46:56.635Z',
+      status: OrderStatus.New,
+      creationTime: new Date('2017-11-06T23:46:56.635Z'),
       executions: [],
       broker: 'Quoine',
       size: 0.01,
-      side: 'Buy',
+      side: OrderSide.Buy,
       price: 783000,
-      cashMarginType: 'NetOut',
+      cashMarginType: CashMarginType.NetOut,
       leverageLevel: 10,
       brokerOrderId: '118573146',
-      sentTime: '2017-11-06T23:46:56.692Z',
-      lastUpdated: '2017-11-06T23:46:56.692Z'
-    };
+      sentTime: new Date('2017-11-06T23:46:56.692Z'),
+      lastUpdated: new Date('2017-11-06T23:46:56.692Z')
+    } as Order;
     await target.cancel(order);
     expect(order.status).toBe(OrderStatus.Canceled);
   });

@@ -15,15 +15,15 @@ describe('Quoine.CashStrategy', () => {
   });
 
   test('getBtcBalance', async () => {
-    const strategy = new CashStrategy(new BrokerApi('key', 'secret'));
+    const strategy = new CashStrategy(new BrokerApi('key', 'secret', false));
     const balance = await strategy.getBtcPosition();
     expect(balance).toBe(0.04925688);
   });
 
   test('getBtcBalance unable to find', async () => {
-    const strategy = new CashStrategy(new BrokerApi('key', 'secret'));
+    const strategy = new CashStrategy(new BrokerApi('key', 'secret', false));
     try {
-      const balance = await strategy.getBtcPosition();
+      await strategy.getBtcPosition();
     } catch (ex) {
       expect(ex.message).toContain('Unable to find');
       return;
