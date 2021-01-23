@@ -2,7 +2,7 @@
 import * as nock from 'nock';
 import * as _ from 'lodash';
 import BrokerAdapterImpl from '../../Bitflyer/BrokerAdapterImpl';
-import { OrderStatus, Broker, CashMarginType, OrderSide, OrderType, TimeInForce, BrokerConfigType } from '../../types';
+import { OrderStatus, Broker, CashMarginType, OrderSide, OrderType, TimeInForce, BrokerConfigType, Order } from '../../types';
 import nocksetup from './nocksetup';
 import OrderImpl from '../../OrderImpl';
 import { options } from '@bitr/logger';
@@ -58,7 +58,7 @@ describe('Bitflyer BrokerAdapter', () => {
 
   test('send wrong broker order', async () => {
     const target = new BrokerAdapterImpl(brokerConfig);
-    const order = { broker: 'Coincheck' };
+    const order = { broker: 'Coincheck' } as Order;
     try {
       await target.send(order);
     } catch (ex) {
@@ -69,7 +69,7 @@ describe('Bitflyer BrokerAdapter', () => {
 
   test('send wrong cashMarginType', async () => {
     const target = new BrokerAdapterImpl(brokerConfig);
-    const order = { broker: 'Bitflyer', cashMarginType: CashMarginType.MarginOpen, symbol: 'ZZZ' };
+    const order = { broker: 'Bitflyer', cashMarginType: CashMarginType.MarginOpen, symbol: 'ZZZ' } as Order;
     try {
       await target.send(order);
     } catch (ex) {
@@ -80,7 +80,7 @@ describe('Bitflyer BrokerAdapter', () => {
 
   test('send wrong symbol order', async () => {
     const target = new BrokerAdapterImpl(brokerConfig);
-    const order = { broker: 'Bitflyer', cashMarginType: CashMarginType.Cash, symbol: 'ZZZ' };
+    const order = { broker: 'Bitflyer', cashMarginType: CashMarginType.Cash, symbol: 'ZZZ' } as Order;
     try {
       await target.send(order);
     } catch (ex) {
@@ -96,7 +96,7 @@ describe('Bitflyer BrokerAdapter', () => {
       cashMarginType: CashMarginType.Cash,
       symbol: 'BTC/JPY',
       type: OrderType.StopLimit
-    };
+    } as Order;
     try {
       await target.send(order);
     } catch (ex) {
@@ -113,7 +113,7 @@ describe('Bitflyer BrokerAdapter', () => {
       symbol: 'BTC/JPY',
       type: OrderType.Market,
       timeInForce: 'MOCK'
-    };
+    } as Order;
     try {
       await target.send(order);
     } catch (ex) {
@@ -124,14 +124,14 @@ describe('Bitflyer BrokerAdapter', () => {
 
   test('cancel', async () => {
     const target = new BrokerAdapterImpl(brokerConfig);
-    const order = { symbol: 'BTC/JPY', brokerOrderId: 'JRF20150707-033333-099999' };
+    const order = { symbol: 'BTC/JPY', brokerOrderId: 'JRF20150707-033333-099999' } as Order;
     await target.cancel(order);
     expect(order.status).toBe(OrderStatus.Canceled);
   });
 
   test('cancel wrong symbol', async () => {
     const target = new BrokerAdapterImpl(brokerConfig);
-    const order = { symbol: 'MOCK' };
+    const order = { symbol: 'MOCK' } as Order;
     try {
       await target.cancel(order);
     } catch (ex) {
@@ -170,11 +170,11 @@ describe('Bitflyer BrokerAdapter', () => {
     const target = new BrokerAdapterImpl(brokerConfig);
     const order = {
       symbol: 'BTC/JPY',
-      type: 'Limit',
-      timeInForce: 'None',
+      type: OrderType.Limit,
+      timeInForce: TimeInForce.None,
       id: '438f7c7b-ed72-4719-935f-477ea043e2b0',
       status: 'New',
-      creationTime: '2017-11-03T09:20:06.687Z',
+      creationTime: new Date('2017-11-03T09:20:06.687Z'),
       executions: [],
       broker: 'Bitflyer',
       size: 0.01,
@@ -182,9 +182,9 @@ describe('Bitflyer BrokerAdapter', () => {
       price: 846700,
       cashMarginType: 'Cash',
       brokerOrderId: 'JRF20171103-092007-284294',
-      sentTime: '2017-11-03T09:20:07.292Z',
-      lastUpdated: '2017-11-03T09:20:07.292Z'
-    };
+      sentTime: new Date('2017-11-03T09:20:07.292Z'),
+      lastUpdated: new Date('2017-11-03T09:20:07.292Z)'
+    } as Order;
     await target.refresh(order);
     expect(order.status).toBe(OrderStatus.Filled);
   });
@@ -193,11 +193,11 @@ describe('Bitflyer BrokerAdapter', () => {
     const target = new BrokerAdapterImpl(brokerConfig);
     const order = {
       symbol: 'BTC/JPY',
-      type: 'Limit',
-      timeInForce: 'None',
+      type: OrderType.Limit,
+      timeInForce: TimeInForce.None,
       id: '438f7c7b-ed72-4719-935f-477ea043e2b0',
-      status: 'New',
-      creationTime: '2017-11-03T09:20:06.687Z',
+      status: OrderStatus.New,
+      creationTime: new Date('2017-11-03T09:20:06.687Z'),
       executions: [],
       broker: 'Bitflyer',
       size: 0.01,
@@ -205,9 +205,9 @@ describe('Bitflyer BrokerAdapter', () => {
       price: 846700,
       cashMarginType: 'Cash',
       brokerOrderId: 'JRF12345',
-      sentTime: '2017-11-03T09:20:07.292Z',
-      lastUpdated: '2017-11-03T09:20:07.292Z'
-    };
+      sentTime: new Date('2017-11-03T09:20:07.292Z'),
+      lastUpdated: new Date('2017-11-03T09:20:07.292Z')
+    } as Order;
     await target.refresh(order);
     expect(order.status).toBe(OrderStatus.Expired);
   });
@@ -216,11 +216,11 @@ describe('Bitflyer BrokerAdapter', () => {
     const target = new BrokerAdapterImpl(brokerConfig);
     const order = {
       symbol: 'BTC/JPY',
-      type: 'Limit',
-      timeInForce: 'None',
+      type: OrderType.Limit,
+      timeInForce: TimeInForce.None,
       id: '438f7c7b-ed72-4719-935f-477ea043e2b0',
-      status: 'New',
-      creationTime: '2017-11-03T09:20:06.687Z',
+      status: OrderStatus.New,
+      creationTime: new Date('2017-11-03T09:20:06.687Z'),
       executions: [],
       broker: 'Bitflyer',
       size: 0.01,
@@ -228,9 +228,9 @@ describe('Bitflyer BrokerAdapter', () => {
       price: 846700,
       cashMarginType: 'Cash',
       brokerOrderId: 'JRF12345',
-      sentTime: '2017-11-03T09:20:07.292Z',
-      lastUpdated: '2017-11-03T09:20:07.292Z'
-    };
+      sentTime: new Date('2017-11-03T09:20:07.292Z'),
+      lastUpdated: new Date('2017-11-03T09:20:07.292Z')
+    } as Order;
     await target.refresh(order);
     expect(order.status).toBe(OrderStatus.Canceled);
   });
@@ -239,11 +239,11 @@ describe('Bitflyer BrokerAdapter', () => {
     const target = new BrokerAdapterImpl(brokerConfig);
     const order = {
       symbol: 'BTC/JPY',
-      type: 'Limit',
-      timeInForce: 'None',
+      type: OrderType.Limit,
+      timeInForce: TimeInForce.None,
       id: '438f7c7b-ed72-4719-935f-477ea043e2b0',
-      status: 'New',
-      creationTime: '2017-11-03T09:20:06.687Z',
+      status: OrderStatus.New,
+      creationTime: new Date('2017-11-03T09:20:06.687Z'),
       executions: [],
       broker: 'Bitflyer',
       size: 0.01,
@@ -251,9 +251,9 @@ describe('Bitflyer BrokerAdapter', () => {
       price: 846700,
       cashMarginType: 'Cash',
       brokerOrderId: 'JRF12345',
-      sentTime: '2017-11-03T09:20:07.292Z',
-      lastUpdated: '2017-11-03T09:20:07.292Z'
-    };
+      sentTime: new Date('2017-11-03T09:20:07.292Z'),
+      lastUpdated: new Date('2017-11-03T09:20:07.292Z')
+    } as Order;
     await target.refresh(order);
     expect(order.status).toBe(OrderStatus.PartiallyFilled);
   });
@@ -262,11 +262,11 @@ describe('Bitflyer BrokerAdapter', () => {
     const target = new BrokerAdapterImpl(brokerConfig);
     const order = {
       symbol: 'BTC/JPY',
-      type: 'Limit',
-      timeInForce: 'None',
+      type: OrderType.Limit,
+      timeInForce: TimeInForce.None,
       id: '438f7c7b-ed72-4719-935f-477ea043e2b0',
-      status: 'New',
-      creationTime: '2017-11-03T09:20:06.687Z',
+      status: OrderStatus.New,
+      creationTime: new Date('2017-11-03T09:20:06.687Z'),
       executions: [],
       broker: 'Bitflyer',
       size: 0.01,
@@ -274,9 +274,9 @@ describe('Bitflyer BrokerAdapter', () => {
       price: 846700,
       cashMarginType: 'Cash',
       brokerOrderId: 'MOCK',
-      sentTime: '2017-11-03T09:20:07.292Z',
-      lastUpdated: '2017-11-03T09:20:07.292Z'
-    };
+      sentTime: new Date('2017-11-03T09:20:07.292Z'),
+      lastUpdated: new Date('2017-11-03T09:20:07.292Z')
+    } as Order;
     await target.refresh(order);
     expect(order.status).toBe(OrderStatus.New);
   });

@@ -1,5 +1,5 @@
 import { getHistoricalOrderStore } from '../HistoricalOrderStore';
-import { ChronoDB } from '@bitr/chronodb';
+import { ChronoDB } from '../chronodb';
 import { createOrder } from './helper';
 import { OrderSide, CashMarginType, OrderType, HistoricalOrderStore } from '../types';
 

@@ -1,7 +1,6 @@
-import OrderImpl from '../OrderImpl';
 import { OrderStatus, OrderSide, CashMarginType, OrderType, Broker, OrderPair } from '../types';
 import { getActivePairStore } from '../ActivePairLevelStore';
-import { ChronoDB } from '@bitr/chronodb';
+import { ChronoDB } from '../chronodb';
 import { createOrder } from './helper';
 import * as OrderUtil from '../OrderUtil';
 
@@ -49,7 +48,7 @@ describe('ActivePairLevelStore', () => {
     expect(() => OrderUtil.toShortString(result[0])).not.toThrow();
     await store.del(key);
     try {
-      const result2 = await store.get(key);
+      await store.get(key);
     } catch (ex) {
       expect(ex.message).toContain('Key not found');
       return;

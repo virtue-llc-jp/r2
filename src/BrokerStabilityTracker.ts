@@ -1,3 +1,4 @@
+import 'reflect-metadata';
 import { Broker, ConfigStore } from './types';
 import { inject, injectable } from 'inversify';
 import symbols from './symbols';

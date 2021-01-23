@@ -14,7 +14,7 @@ import PairTrader from './PairTrader';
 @injectable()
 export default class Arbitrager {
   private readonly log = getLogger(this.constructor.name);
-  private shouldStop: boolean = false;
+  shouldStop: boolean = false;
   status: string = 'Init';
   private handlerRef: (quotes: Quote[]) => Promise<void>;
 

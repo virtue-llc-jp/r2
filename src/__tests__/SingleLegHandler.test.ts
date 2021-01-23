@@ -1,30 +1,41 @@
 import SingleLegHandler from '../SingleLegHandler';
-import { OnSingleLegConfig, OrderSide, CashMarginType, OrderType, OrderStatus } from '../types';
+import { OnSingleLegConfig, OrderSide, CashMarginType, OrderType, OrderStatus, ConfigStore } from '../types';
 import OrderImpl from '../OrderImpl';
 import { options } from '@bitr/logger';
 import { createOrder } from './helper';
+import BrokerAdapterRouter from '../BrokerAdapterRouter';
 options.enabled = false;
 
 test('handle cancel action', () => {
   const config = { action: 'Cancel' } as OnSingleLegConfig;
-  const handler = new SingleLegHandler(undefined, { config: { symbol: 'BTC/JPY', onSingleLeg: config } });
+  const handler = new SingleLegHandler({} as BrokerAdapterRouter, {
+    config: { symbol: 'BTC/JPY', onSingleLeg: config }
+  } as ConfigStore);
   expect(() => handler.handle(undefined, false)).not.toThrow();
 });
 
 test('handle undefined config', () => {
-  const handler = new SingleLegHandler(undefined, { config: { symbol: 'BTC/JPY' } });
+  const handler = new SingleLegHandler({} as BrokerAdapterRouter, {
+    config: { symbol: 'BTC/JPY' }
+  } as ConfigStore);
   expect(() => handler.handle(undefined, false)).not.toThrow();
 });
 
 test('handle cancel + closable', () => {
   const config = { action: 'Cancel' } as OnSingleLegConfig;
-  const handler = new SingleLegHandler(undefined, { config: { symbol: 'BTC/JPY', onSingleLeg: config } });
+  const handler = new SingleLegHandler({} as BrokerAdapterRouter, {
+    config: { symbol: 'BTC/JPY', onSingleLeg: config }
+  } as ConfigStore);
   expect(() => handler.handle(undefined, true)).not.toThrow();
 });
 
 test('reverse fill', async () => {
   const config = { action: 'Reverse', options: { limitMovePercent: 1, ttl: 1 } };
-  const baRouter = { send: jest.fn(), refresh: jest.fn(), cancel: jest.fn() };
+  const baRouter = {
+    send: jest.fn(),
+    refresh: jest.fn(),
+    cancel: jest.fn()
+  } as BrokerAdapterRouter;
   const handler = new SingleLegHandler(baRouter, { config: { symbol: 'BTC/JPY', onSingleLeg: config } });
   const buyLeg = createOrder('Dummy1', OrderSide.Buy, 0.1, 100, CashMarginType.Cash, OrderType.Limit, 10);
   buyLeg.filledSize = 0.1;
