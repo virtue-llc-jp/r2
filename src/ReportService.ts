@@ -21,7 +21,7 @@ const writeFile = promisify(fs.writeFile);
 export default class ReportService {
   private readonly log = getLogger(this.constructor.name);
   private readonly analyticsPath = `${__dirname}/analytics`;
-  private readonly reportDir = `${cwd()}/reports`;
+  readonly reportDir = `${cwd()}/reports`;
   private readonly spreadStatReport = `${this.reportDir}/spreadStat.csv`;
   private spreadStatWriteStream: fs.WriteStream;
   private streamPublisher: ZmqPublisher;

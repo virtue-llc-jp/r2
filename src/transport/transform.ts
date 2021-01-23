@@ -24,9 +24,14 @@ const levels = {
   10: 'TRACE'
 };
 
-export function pretty(opts: {
-    colorize: boolean; withLabel: boolean; debug: boolean; info: boolean; hidden: boolean
-  }) {
+export interface PrettyOpts {
+  colorize: boolean;
+  withLabel: boolean;
+  debug: boolean;
+  info: boolean;
+  hidden: boolean;
+}
+export function pretty(opts: PrettyOpts) {
   const { colorize, withLabel, debug, info, hidden } = opts;
   const ctx = new chalk.Instance({
     level: colorize ? chalk.supportsColor ? chalk.supportsColor.level : 0 : 0

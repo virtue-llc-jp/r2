@@ -2,9 +2,8 @@
 import * as nock from 'nock';
 import * as _ from 'lodash';
 import BrokerAdapterImpl from '../../Bitflyer/BrokerAdapterImpl';
-import { OrderStatus, Broker, CashMarginType, OrderSide, OrderType, TimeInForce, BrokerConfigType, Order } from '../../types';
+import { OrderStatus, CashMarginType, OrderSide, OrderType, TimeInForce, BrokerConfigType, Order } from '../../types';
 import nocksetup from './nocksetup';
-import OrderImpl from '../../OrderImpl';
 import { options } from '@bitr/logger';
 import { createOrder } from '../helper';
 options.enabled = false;
@@ -31,7 +30,7 @@ describe('Bitflyer BrokerAdapter', () => {
   test('getBtcPosition throws', async () => {
     const target = new BrokerAdapterImpl(brokerConfig);
     try {
-      const result = await target.getBtcPosition();
+      await target.getBtcPosition();
     } catch (ex) {
       expect(ex.message).toBe('Btc balance is not found.');
       return;
@@ -49,7 +48,7 @@ describe('Bitflyer BrokerAdapter', () => {
   test('fetchQuotes throws', async () => {
     const target = new BrokerAdapterImpl(brokerConfig);
     try {
-      const result = await target.fetchQuotes();
+      await target.fetchQuotes();
     } catch (ex) {
       return;
     }
@@ -112,7 +111,7 @@ describe('Bitflyer BrokerAdapter', () => {
       cashMarginType: CashMarginType.Cash,
       symbol: 'BTC/JPY',
       type: OrderType.Market,
-      timeInForce: 'MOCK'
+      timeInForce: 'MOCK' as TimeInForce
     } as Order;
     try {
       await target.send(order);
@@ -178,12 +177,13 @@ describe('Bitflyer BrokerAdapter', () => {
       executions: [],
       broker: 'Bitflyer',
       size: 0.01,
+      filledSize: 0,
       side: 'Sell',
       price: 846700,
       cashMarginType: 'Cash',
       brokerOrderId: 'JRF20171103-092007-284294',
       sentTime: new Date('2017-11-03T09:20:07.292Z'),
-      lastUpdated: new Date('2017-11-03T09:20:07.292Z)'
+      lastUpdated: new Date('2017-11-03T09:20:07.292Z')
     } as Order;
     await target.refresh(order);
     expect(order.status).toBe(OrderStatus.Filled);
@@ -201,6 +201,7 @@ describe('Bitflyer BrokerAdapter', () => {
       executions: [],
       broker: 'Bitflyer',
       size: 0.01,
+      filledSize: 0,
       side: 'Sell',
       price: 846700,
       cashMarginType: 'Cash',
@@ -224,6 +225,7 @@ describe('Bitflyer BrokerAdapter', () => {
       executions: [],
       broker: 'Bitflyer',
       size: 0.01,
+      filledSize: 0,
       side: 'Sell',
       price: 846700,
       cashMarginType: 'Cash',
@@ -247,6 +249,7 @@ describe('Bitflyer BrokerAdapter', () => {
       executions: [],
       broker: 'Bitflyer',
       size: 0.01,
+      filledSize: 0,
       side: 'Sell',
       price: 846700,
       cashMarginType: 'Cash',
@@ -270,6 +273,7 @@ describe('Bitflyer BrokerAdapter', () => {
       executions: [],
       broker: 'Bitflyer',
       size: 0.01,
+      filledSize: 0,
       side: 'Sell',
       price: 846700,
       cashMarginType: 'Cash',
