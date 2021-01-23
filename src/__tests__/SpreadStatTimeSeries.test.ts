@@ -4,23 +4,23 @@ import { getSpreadStatTimeSeries } from '../SpreadStatTimeSeries';
 import { SpreadStat } from '../types';
 
 describe('SpreadStatTimeSeries', () => {
-  test('get', () => {
-    const expected = new TimeSeries<SpreadStat>(
+  test('get', async () => {
+    const ts = new TimeSeries<SpreadStat>(
       {
         get: (x) =>
-          new Promise((z) => {
-            return { timestamp: 123 } as SpreadStat;
+          new Promise<SpreadStat>((resolve, reject) => {
+            resolve({ timestamp: 123 } as SpreadStat);
           }),
       } as LevelUp,
       ''
     );
     const dbMock: ChronoDB = {
       getTimeSeries: (o: string) => {
-        return expected;
+        return ts;
       },
     } as ChronoDB;
     getSpreadStatTimeSeries(dbMock);
     const result = dbMock.getTimeSeries<SpreadStat>('');
-    expect(result).toBe(expected);
+    expect((await result.get('')).timestamp).toBe(123);
   });
 });
