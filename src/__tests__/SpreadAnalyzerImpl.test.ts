@@ -1,10 +1,10 @@
 import 'reflect-metadata';
 import SpreadAnalyzer from '../SpreadAnalyzer';
-import { Broker, QuoteSide, ConfigStore } from '../types';
+import { QuoteSide, ConfigStore, BrokerPosition, BrokerMap } from '../types';
 import * as _ from 'lodash';
-import Quote from '../types';
 import { options } from '@bitr/logger';
 import { toQuote } from '../util';
+import OrderImpl from '../OrderImpl';
 options.enabled = false;
 
 const config = require('./config_test.json');
@@ -16,14 +16,14 @@ const positionMap = {
     allowedShortSize: 10,
     longAllowed: true,
     shortAllowed: true
-  },
+  } as BrokerPosition,
   Quoine: {
     allowedLongSize: 10,
     allowedShortSize: 10,
     longAllowed: true,
     shortAllowed: true
-  }
-};
+  } as BrokerPosition
+} as BrokerMap<BrokerPosition>;
 
 describe('Spread Analyzer', () => {
   test('analyze', async () => {
@@ -162,7 +162,10 @@ describe('Spread Analyzer', () => {
     ];
     const target = new SpreadAnalyzer(configStore);
     try {
-      const result = await target.analyze(quotes, positionMap, [{size: 0.001}, {size: 0.002}]);
+      const result = await target.analyze(quotes, positionMap, [
+        {size: 0.001} as OrderImpl,
+        {size: 0.002} as OrderImpl
+      ]);
     } catch (ex) {
       expect(ex.message).toBe('Invalid closing pair.');
       return;

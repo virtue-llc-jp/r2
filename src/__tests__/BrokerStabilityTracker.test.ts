@@ -1,4 +1,5 @@
 import BrokerStabilityTracker from '../BrokerStabilityTracker';
+import { ConfigStore } from '../types';
 import { delay } from '../util';
 
 describe('BrokerStabilityTracker', () => {
@@ -13,7 +14,7 @@ describe('BrokerStabilityTracker', () => {
         { broker: 'dummy2' }
       ]
     };
-    const bst = new BrokerStabilityTracker({ config });
+    const bst = new BrokerStabilityTracker({ config } as ConfigStore);
     await bst.start();
     await bst.stop();
   });
@@ -29,7 +30,7 @@ describe('BrokerStabilityTracker', () => {
         { broker: 'dummy2' }
       ]
     };
-    const bst = new BrokerStabilityTracker({ config });
+    const bst = new BrokerStabilityTracker({ config } as ConfigStore);
     await bst.start();
     bst.decrement('dummy1');
     bst.decrement('dummy3');
@@ -53,20 +54,20 @@ describe('BrokerStabilityTracker', () => {
         { broker: 'dummy2' }
       ]
     };
-    const bst = new BrokerStabilityTracker({ config });
+    const bst = new BrokerStabilityTracker({ config } as ConfigStore);
     await bst.start();
     await bst.stop();
   });
 
   test('start/stop with imcomplete config', async () => {
     const config = {
-      stabilityTracker: {}
+      stabilityTracker: {},
       brokers: [
         { broker: 'dummy1' },
         { broker: 'dummy2' }
       ]
     };
-    const bst = new BrokerStabilityTracker({ config });
+    const bst = new BrokerStabilityTracker({ config } as ConfigStore);
     await bst.start();
     expect(bst.isStable('dummy1')).toBe(true);
     await bst.stop();

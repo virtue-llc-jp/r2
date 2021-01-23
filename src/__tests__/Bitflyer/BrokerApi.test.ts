@@ -12,7 +12,7 @@ afterAll(() => {
 });
 const target = new BrokerApi('key', 'secret');
 
-describe('BrokerApi', async () => {
+describe('BrokerApi', () => {
   test('sendChildOrder', async () => {
     const req = {
       "product_code": "BTC_JPY",

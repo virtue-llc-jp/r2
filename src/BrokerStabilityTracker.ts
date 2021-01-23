@@ -9,7 +9,7 @@ const MIN = 1;
 @injectable()
 export default class BrokerStabilityTracker {
   private stabilityMap: Map<Broker, number>;
-  private timer;
+  private timeout: NodeJS.Timeout;
 
   constructor(@inject(symbols.ConfigStore) private readonly configStore: ConfigStore) {
     const brokers = this.configStore.config.brokers.map(b => b.broker);
@@ -19,13 +19,13 @@ export default class BrokerStabilityTracker {
   async start() {
     if (this.configStore.config.stabilityTracker) {
       const interval = this.configStore.config.stabilityTracker.recoveryInterval || 60 * 1000;
-      this.timer = setInterval(() => this.recover(), interval);
+      this.timeout = setInterval(() => this.recover(), interval);
     }
   }
 
   async stop() {
-    if (this.timer) {
-      clearInterval(this.timer);
+    if (this.timeout) {
+      clearInterval(this.timeout);
     }
   }
 

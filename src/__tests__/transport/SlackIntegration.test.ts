@@ -36,7 +36,7 @@ describe('SlackIntegration', () => {
     await util.delay(0);
   });
 
-  test('slack with no keyword', () => {
+  test('slack with no keyword', async () => {
     const config = {
       enabled: true,
       url: 'https://hooks.slack.com/services/xxxxxx',
@@ -46,6 +46,7 @@ describe('SlackIntegration', () => {
     const slack = new SlackIntegration(config);
     slack.handler('test message');
     slack.handler('with keyword: profit');
+    await util.delay(0);
   });
 
   afterAll(() => {
