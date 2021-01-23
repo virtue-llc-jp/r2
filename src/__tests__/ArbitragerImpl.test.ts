@@ -21,7 +21,6 @@ import { ChronoDB } from '../chronodb';
 import QuoteAggregator from '../QuoteAggregator';
 import SingleLegHandler from '../SingleLegHandler';
 import AwaitableEventEmitter from '@bitr/awaitable-event-emitter/dist/AwaitableEventEmitter';
-import { quantileSorted } from 'simple-statistics';
 options.enabled = false;
 
 const chronoDB = new ChronoDB(`${__dirname}/datastore/1`);
@@ -39,9 +38,9 @@ let quoteAggregator,
 
 describe('Arbitrager', () => {
   beforeEach(async () => {
-    const qa: QuoteAggregator = new AwaitableEventEmitter() as QuoteAggregator;
-    qa.start = jest.fn();
-    qa.stop = jest.fn();
+    quoteAggregator = new AwaitableEventEmitter() as QuoteAggregator;
+    quoteAggregator.start = jest.fn();
+    quoteAggregator.stop = jest.fn();
     config = {
       symbol: 'BTC/JPY',
       maxNetExposure: 10.0,
@@ -53,7 +52,7 @@ describe('Arbitrager', () => {
           leverageLevel: 1,
           maxLongPosition: 100,
           maxShortPosition: 100,
-          commissionPercent: 0
+          commissionPercent: 0,
         },
         {
           broker: 'Coincheck',
@@ -61,7 +60,7 @@ describe('Arbitrager', () => {
           leverageLevel: 8,
           maxLongPosition: 100,
           maxShortPosition: 100,
-          commissionPercent: 0
+          commissionPercent: 0,
         },
         {
           broker: 'Quoine',
@@ -69,9 +68,9 @@ describe('Arbitrager', () => {
           leverageLevel: 9,
           maxLongPosition: 100,
           maxShortPosition: 100,
-          commissionPercent: 0
-        }
-      ]
+          commissionPercent: 0,
+        },
+      ],
     } as ConfigRoot;
     configStore = { config } as ConfigStore;
     positionMap = {
@@ -80,15 +79,15 @@ describe('Arbitrager', () => {
         allowedShortSize: 10,
         longAllowed: true,
         shortAllowed: true,
-        baseCcyPosition: 0.1
+        baseCcyPosition: 0.1,
       },
       Quoine: {
         allowedLongSize: 10,
         allowedShortSize: 10,
         longAllowed: true,
         shortAllowed: true,
-        baseCcyPosition: -0.1
-      }
+        baseCcyPosition: -0.1,
+      },
     };
     positionService = {
       positionMap,
@@ -96,7 +95,7 @@ describe('Arbitrager', () => {
       stop: jest.fn(),
       print: jest.fn(),
       isStarted: true,
-      netExposure: 0
+      netExposure: 0,
     };
 
     baRouter = {
@@ -104,11 +103,11 @@ describe('Arbitrager', () => {
       refresh: jest.fn(),
       cancel: jest.fn(),
       getBtcPosition: jest.fn(),
-      fetchQuotes: jest.fn()
+      fetchQuotes: jest.fn(),
     };
 
     spreadAnalyzer = {
-      analyze: jest.fn()
+      analyze: jest.fn(),
     };
 
     limitCheckerFactory = new LimitCheckerFactory(configStore, positionService);
@@ -117,7 +116,7 @@ describe('Arbitrager', () => {
       toQuote('Coincheck', QuoteSide.Ask, 3, 1),
       toQuote('Coincheck', QuoteSide.Bid, 2, 2),
       toQuote('Quoine', QuoteSide.Ask, 3.5, 3),
-      toQuote('Quoine', QuoteSide.Bid, 2.5, 4)
+      toQuote('Quoine', QuoteSide.Bid, 2.5, 4),
     ];
 
     await activePairStore.delAll();
@@ -189,7 +188,7 @@ describe('Arbitrager', () => {
         ask: toQuote('Coincheck', QuoteSide.Ask, 500, 1),
         invertedSpread: -100,
         targetVolume: 1,
-        targetProfit: -100
+        targetProfit: -100,
       };
     });
     config.maxNetExposure = 0.1;
@@ -217,7 +216,7 @@ describe('Arbitrager', () => {
         ask: toQuote('Coincheck', QuoteSide.Ask, 500, 1),
         invertedSpread: -100,
         targetVolume: 1,
-        targetProfit: -100
+        targetProfit: -100,
       };
     });
     const searcher = new OppotunitySearcher(
@@ -246,7 +245,7 @@ describe('Arbitrager', () => {
         invertedSpread: 100,
         availableVolume: 1,
         targetVolume: 1,
-        targetProfit: 100
+        targetProfit: 100,
       };
     });
     const searcher = new OppotunitySearcher(
@@ -275,7 +274,7 @@ describe('Arbitrager', () => {
         invertedSpread: 100,
         availableVolume: 1,
         targetVolume: 1,
-        targetProfit: 100
+        targetProfit: 100,
       };
     });
     const searcher = new OppotunitySearcher(
@@ -304,7 +303,7 @@ describe('Arbitrager', () => {
         invertedSpread: 100,
         availableVolume: 1,
         targetVolume: 1,
-        targetProfit: 100
+        targetProfit: 100,
       };
     });
     const searcher = new OppotunitySearcher(
@@ -332,7 +331,7 @@ describe('Arbitrager', () => {
         invertedSpread: 100,
         availableVolume: 1,
         targetVolume: 1,
-        targetProfit: 100
+        targetProfit: 100,
       };
     });
     const searcher = new OppotunitySearcher(
@@ -360,7 +359,7 @@ describe('Arbitrager', () => {
         invertedSpread: 100,
         availableVolume: 1,
         targetVolume: 1,
-        targetProfit: 100
+        targetProfit: 100,
       };
     });
     const searcher = new OppotunitySearcher(
@@ -389,7 +388,7 @@ describe('Arbitrager', () => {
         invertedSpread: 100,
         availableVolume: 1,
         targetVolume: 1,
-        targetProfit: 100
+        targetProfit: 100,
       };
     });
     const searcher = new OppotunitySearcher(
@@ -409,8 +408,7 @@ describe('Arbitrager', () => {
   });
 
   test('Send and both orders filled', async () => {
-    let i = 1;
-    baRouter.refresh = jest.fn().mockImplementation(order => {
+    baRouter.refresh = jest.fn().mockImplementation((order) => {
       order.status = OrderStatus.Filled;
     });
     config.maxRetryCount = 3;
@@ -421,7 +419,7 @@ describe('Arbitrager', () => {
         invertedSpread: 100,
         availableVolume: 1,
         targetVolume: 1,
-        targetProfit: 100
+        targetProfit: 100,
       };
     });
     const searcher = new OppotunitySearcher(
@@ -445,11 +443,10 @@ describe('Arbitrager', () => {
   test('Send and both orders filled with different send size', async () => {
     const cdb = new ChronoDB(`${__dirname}/datastore/diff_size`);
     const aps = getActivePairStore(chronoDB);
-    let i = 1;
-    baRouter.refresh = jest.fn().mockImplementation(order => {
+    baRouter.refresh = jest.fn().mockImplementation((order) => {
       order.status = OrderStatus.Filled;
     });
-    baRouter.send = jest.fn().mockImplementation(order => {
+    baRouter.send = jest.fn().mockImplementation((order) => {
       if (order.side === OrderSide.Sell) {
         order.size += 0.0015;
       }
@@ -462,16 +459,10 @@ describe('Arbitrager', () => {
         invertedSpread: 100,
         availableVolume: 1,
         targetVolume: 1,
-        targetProfit: 100
+        targetProfit: 100,
       };
     });
-    const searcher = new OppotunitySearcher(
-      configStore,
-      positionService,
-      spreadAnalyzer,
-      limitCheckerFactory,
-      aps
-    );
+    const searcher = new OppotunitySearcher(configStore, positionService, spreadAnalyzer, limitCheckerFactory, aps);
     const trader = new PairTrader(configStore, baRouter, aps, new SingleLegHandler(baRouter, configStore));
     const arbitrager = new Arbitrager(quoteAggregator, configStore, positionService, searcher, trader);
     positionService.isStarted = true;
@@ -488,8 +479,7 @@ describe('Arbitrager', () => {
   });
 
   test('Send and only buy order filled', async () => {
-    let i = 1;
-    baRouter.refresh = order => {
+    baRouter.refresh = (order) => {
       if (order.side === OrderSide.Buy) {
         order.status = OrderStatus.Filled;
       }
@@ -502,7 +492,7 @@ describe('Arbitrager', () => {
         invertedSpread: 100,
         availableVolume: 1,
         targetVolume: 1,
-        targetProfit: 100
+        targetProfit: 100,
       };
     });
     const searcher = new OppotunitySearcher(
@@ -521,8 +511,7 @@ describe('Arbitrager', () => {
   });
 
   test('Send and only sell order filled', async () => {
-    let i = 1;
-    baRouter.refresh = jest.fn().mockImplementation(order => {
+    baRouter.refresh = jest.fn().mockImplementation((order) => {
       if (order.side === OrderSide.Sell) {
         order.status = OrderStatus.Filled;
       }
@@ -535,7 +524,7 @@ describe('Arbitrager', () => {
         invertedSpread: 100,
         availableVolume: 1,
         targetVolume: 1,
-        targetProfit: 100
+        targetProfit: 100,
       };
     });
     const searcher = new OppotunitySearcher(
@@ -558,8 +547,7 @@ describe('Arbitrager', () => {
 
   test('Send and only sell order filled -> reverse', async () => {
     config.onSingleLeg = { action: 'Reverse', options: { limitMovePercent: 10 } } as OnSingleLegConfig;
-    let i = 1;
-    baRouter.refresh = jest.fn().mockImplementation(async order => {
+    baRouter.refresh = jest.fn().mockImplementation(async (order) => {
       order.filledSize = 0;
       if (order.side === OrderSide.Sell) {
         order.status = OrderStatus.Filled;
@@ -574,7 +562,7 @@ describe('Arbitrager', () => {
         invertedSpread: 100,
         availableVolume: 1,
         targetVolume: 1,
-        targetProfit: 100
+        targetProfit: 100,
       };
     });
     const searcher = new OppotunitySearcher(
@@ -597,8 +585,7 @@ describe('Arbitrager', () => {
 
   test('Send and sell order filled and buy order partial filled -> reverse', async () => {
     config.onSingleLeg = { action: 'Reverse', options: { limitMovePercent: 10 } } as OnSingleLegConfig;
-    let i = 1;
-    baRouter.refresh = jest.fn().mockImplementation(async order => {
+    baRouter.refresh = jest.fn().mockImplementation(async (order) => {
       order.filledSize = 0.3;
       if (order.side === OrderSide.Sell) {
         order.status = OrderStatus.Filled;
@@ -613,7 +600,7 @@ describe('Arbitrager', () => {
         invertedSpread: 100,
         availableVolume: 1,
         targetVolume: 1,
-        targetProfit: 100
+        targetProfit: 100,
       };
     });
     const searcher = new OppotunitySearcher(
@@ -636,8 +623,7 @@ describe('Arbitrager', () => {
 
   test('Send and sell order unfilled and buy order partial filled -> reverse', async () => {
     config.onSingleLeg = { action: 'Reverse', options: { limitMovePercent: 10 } } as OnSingleLegConfig;
-    let i = 1;
-    baRouter.refresh = jest.fn().mockImplementation(async order => {
+    baRouter.refresh = jest.fn().mockImplementation(async (order) => {
       order.filledSize = 0.3;
       if (order.side === OrderSide.Sell) {
         order.filledSize = 0;
@@ -651,7 +637,7 @@ describe('Arbitrager', () => {
         invertedSpread: 100,
         availableVolume: 1,
         targetVolume: 1,
-        targetProfit: 100
+        targetProfit: 100,
       };
     });
     const searcher = new OppotunitySearcher(
@@ -674,8 +660,7 @@ describe('Arbitrager', () => {
 
   test('Send and only buy order filled -> reverse', async () => {
     config.onSingleLeg = { action: 'Reverse', options: { limitMovePercent: 10 } } as OnSingleLegConfig;
-    let i = 1;
-    baRouter.refresh = jest.fn().mockImplementation(async order => {
+    baRouter.refresh = jest.fn().mockImplementation(async (order) => {
       order.filledSize = 0;
       if (order.side === OrderSide.Buy) {
         order.status = OrderStatus.Filled;
@@ -690,7 +675,7 @@ describe('Arbitrager', () => {
         invertedSpread: 100,
         availableVolume: 1,
         targetVolume: 1,
-        targetProfit: 100
+        targetProfit: 100,
       };
     });
     const searcher = new OppotunitySearcher(
@@ -713,8 +698,7 @@ describe('Arbitrager', () => {
 
   test('Send and buy order filled and sel order partial filled -> reverse', async () => {
     config.onSingleLeg = { action: 'Reverse', options: { limitMovePercent: 10 } } as OnSingleLegConfig;
-    let i = 1;
-    baRouter.refresh = jest.fn().mockImplementation(async order => {
+    baRouter.refresh = jest.fn().mockImplementation(async (order) => {
       order.filledSize = 0.3;
       if (order.side === OrderSide.Buy) {
         order.status = OrderStatus.Filled;
@@ -729,7 +713,7 @@ describe('Arbitrager', () => {
         invertedSpread: 100,
         availableVolume: 1,
         targetVolume: 1,
-        targetProfit: 100
+        targetProfit: 100,
       };
     });
     const searcher = new OppotunitySearcher(
@@ -752,8 +736,7 @@ describe('Arbitrager', () => {
 
   test('Send and buy order unfilled and sel order partial filled -> reverse', async () => {
     config.onSingleLeg = { action: 'Reverse', options: { limitMovePercent: 10 } } as OnSingleLegConfig;
-    let i = 1;
-    baRouter.refresh = jest.fn().mockImplementation(async order => {
+    baRouter.refresh = jest.fn().mockImplementation(async (order) => {
       order.filledSize = 0.3;
       if (order.side === OrderSide.Buy) {
         order.filledSize = 0;
@@ -767,7 +750,7 @@ describe('Arbitrager', () => {
         invertedSpread: 100,
         availableVolume: 1,
         targetVolume: 1,
-        targetProfit: 100
+        targetProfit: 100,
       };
     });
     const searcher = new OppotunitySearcher(
@@ -790,8 +773,7 @@ describe('Arbitrager', () => {
 
   test('Send and both orders partial filled -> reverse', async () => {
     config.onSingleLeg = { action: 'Reverse', options: { limitMovePercent: 10 } } as OnSingleLegConfig;
-    let i = 1;
-    baRouter.refresh = jest.fn().mockImplementation(async order => {
+    baRouter.refresh = jest.fn().mockImplementation(async (order) => {
       order.filledSize = 0.7;
       if (order.side === OrderSide.Buy) {
         order.filledSize = 0.2;
@@ -805,7 +787,7 @@ describe('Arbitrager', () => {
         invertedSpread: 100,
         availableVolume: 1,
         targetVolume: 1,
-        targetProfit: 100
+        targetProfit: 100,
       };
     });
     const searcher = new OppotunitySearcher(
@@ -828,8 +810,7 @@ describe('Arbitrager', () => {
 
   test('Send and both orders same quantity partial filled -> reverse', async () => {
     config.onSingleLeg = { action: 'Reverse', options: { limitMovePercent: 10 } } as OnSingleLegConfig;
-    let i = 1;
-    baRouter.refresh = jest.fn().mockImplementation(async order => {
+    baRouter.refresh = jest.fn().mockImplementation(async (order) => {
       order.filledSize = 0.8;
       if (order.side === OrderSide.Buy) {
         order.filledSize = 0.8;
@@ -843,7 +824,7 @@ describe('Arbitrager', () => {
         invertedSpread: 100,
         availableVolume: 1,
         targetVolume: 1,
-        targetProfit: 100
+        targetProfit: 100,
       };
     });
     const searcher = new OppotunitySearcher(
@@ -866,8 +847,7 @@ describe('Arbitrager', () => {
 
   test('Send and both orders unfilled -> reverse', async () => {
     config.onSingleLeg = { action: 'Reverse', options: { limitMovePercent: 10 } } as OnSingleLegConfig;
-    let i = 1;
-    baRouter.refresh = jest.fn().mockImplementation(async order => {
+    baRouter.refresh = jest.fn().mockImplementation(async (order) => {
       order.filledSize = 0;
       if (order.side === OrderSide.Buy) {
         order.filledSize = 0;
@@ -881,7 +861,7 @@ describe('Arbitrager', () => {
         invertedSpread: 100,
         availableVolume: 1,
         targetVolume: 1,
-        targetProfit: 100
+        targetProfit: 100,
       };
     });
     const searcher = new OppotunitySearcher(
@@ -904,8 +884,7 @@ describe('Arbitrager', () => {
 
   test('Send and only buy order filled -> reverse -> fill', async () => {
     config.onSingleLeg = { action: 'Reverse', options: { limitMovePercent: 10 } } as OnSingleLegConfig;
-    let i = 1;
-    const fillBuy = async order => {
+    const fillBuy = async (order) => {
       order.filledSize = 0;
       if (order.side === OrderSide.Buy) {
         order.status = OrderStatus.Filled;
@@ -916,7 +895,7 @@ describe('Arbitrager', () => {
       .fn()
       .mockImplementationOnce(fillBuy)
       .mockImplementationOnce(fillBuy)
-      .mockImplementationOnce(async order => {
+      .mockImplementationOnce(async (order) => {
         order.status = OrderStatus.Filled;
       });
     config.maxRetryCount = 1;
@@ -927,7 +906,7 @@ describe('Arbitrager', () => {
         invertedSpread: 100,
         availableVolume: 1,
         targetVolume: 1,
-        targetProfit: 100
+        targetProfit: 100,
       };
     });
     const searcher = new OppotunitySearcher(
@@ -951,8 +930,7 @@ describe('Arbitrager', () => {
 
   test('Send and only buy order filled -> reverse -> send throws', async () => {
     config.onSingleLeg = { action: 'Reverse', options: { limitMovePercent: 10 } } as OnSingleLegConfig;
-    let i = 1;
-    baRouter.refresh = jest.fn().mockImplementation(async order => {
+    baRouter.refresh = jest.fn().mockImplementation(async (order) => {
       order.filledSize = 0;
       if (order.side === OrderSide.Buy) {
         order.status = OrderStatus.Filled;
@@ -977,7 +955,7 @@ describe('Arbitrager', () => {
       invertedSpread: 100,
       availableVolume: 1,
       targetVolume: 1,
-      targetProfit: 100
+      targetProfit: 100,
     });
     const searcher = new OppotunitySearcher(
       configStore,
@@ -1000,8 +978,7 @@ describe('Arbitrager', () => {
 
   test('Send and only sell order filled -> proceed', async () => {
     config.onSingleLeg = { action: 'Proceed', options: { limitMovePercent: 10 } } as OnSingleLegConfig;
-    let i = 1;
-    baRouter.refresh = jest.fn().mockImplementation(async order => {
+    baRouter.refresh = jest.fn().mockImplementation(async (order) => {
       order.filledSize = 0;
       if (order.side === OrderSide.Sell) {
         order.status = OrderStatus.Filled;
@@ -1016,7 +993,7 @@ describe('Arbitrager', () => {
         invertedSpread: 100,
         availableVolume: 1,
         targetVolume: 1,
-        targetProfit: 100
+        targetProfit: 100,
       };
     });
     const searcher = new OppotunitySearcher(
@@ -1039,8 +1016,7 @@ describe('Arbitrager', () => {
 
   test('Send and only buy order filled -> proceed', async () => {
     config.onSingleLeg = { action: 'Proceed', options: { limitMovePercent: 10 } } as OnSingleLegConfig;
-    let i = 1;
-    baRouter.refresh = jest.fn().mockImplementation(async order => {
+    baRouter.refresh = jest.fn().mockImplementation(async (order) => {
       order.filledSize = 0;
       if (order.side === OrderSide.Buy) {
         order.status = OrderStatus.Filled;
@@ -1055,7 +1031,7 @@ describe('Arbitrager', () => {
         invertedSpread: 100,
         availableVolume: 1,
         targetVolume: 1,
-        targetProfit: 100
+        targetProfit: 100,
       };
     });
     const searcher = new OppotunitySearcher(
@@ -1078,8 +1054,7 @@ describe('Arbitrager', () => {
 
   test('Send and buy order filled and sell order partial filled -> proceed', async () => {
     config.onSingleLeg = { action: 'Proceed', options: { limitMovePercent: 10 } } as OnSingleLegConfig;
-    let i = 1;
-    baRouter.refresh = jest.fn().mockImplementation(async order => {
+    baRouter.refresh = jest.fn().mockImplementation(async (order) => {
       order.filledSize = 0.3;
       if (order.side === OrderSide.Buy) {
         order.status = OrderStatus.Filled;
@@ -1094,7 +1069,7 @@ describe('Arbitrager', () => {
         invertedSpread: 100,
         availableVolume: 1,
         targetVolume: 1,
-        targetProfit: 100
+        targetProfit: 100,
       };
     });
     const searcher = new OppotunitySearcher(
@@ -1117,8 +1092,7 @@ describe('Arbitrager', () => {
 
   test('Send and buy order unfilled and sell order partial filled -> proceed', async () => {
     config.onSingleLeg = { action: 'Proceed', options: { limitMovePercent: 10 } } as OnSingleLegConfig;
-    let i = 1;
-    baRouter.refresh = jest.fn().mockImplementation(async order => {
+    baRouter.refresh = jest.fn().mockImplementation(async (order) => {
       order.filledSize = 0.3;
       if (order.side === OrderSide.Buy) {
         order.filledSize = 0;
@@ -1132,7 +1106,7 @@ describe('Arbitrager', () => {
         invertedSpread: 100,
         availableVolume: 1,
         targetVolume: 1,
-        targetProfit: 100
+        targetProfit: 100,
       };
     });
     const searcher = new OppotunitySearcher(
@@ -1155,8 +1129,7 @@ describe('Arbitrager', () => {
 
   test('Send and both orders partial filled -> proceed', async () => {
     config.onSingleLeg = { action: 'Proceed', options: { limitMovePercent: 10 } } as OnSingleLegConfig;
-    let i = 1;
-    baRouter.refresh = jest.fn().mockImplementation(async order => {
+    baRouter.refresh = jest.fn().mockImplementation(async (order) => {
       order.filledSize = 0.7;
       if (order.side === OrderSide.Buy) {
         order.filledSize = 0.2;
@@ -1170,7 +1143,7 @@ describe('Arbitrager', () => {
         invertedSpread: 100,
         availableVolume: 1,
         targetVolume: 1,
-        targetProfit: 100
+        targetProfit: 100,
       };
     });
     const searcher = new OppotunitySearcher(
@@ -1193,8 +1166,7 @@ describe('Arbitrager', () => {
 
   test('Send and both orders same quantity partial filled -> proceed', async () => {
     config.onSingleLeg = { action: 'Proceed', options: { limitMovePercent: 10 } } as OnSingleLegConfig;
-    let i = 1;
-    baRouter.refresh = jest.fn().mockImplementation(async order => {
+    baRouter.refresh = jest.fn().mockImplementation(async (order) => {
       order.filledSize = 0.8;
       if (order.side === OrderSide.Buy) {
         order.filledSize = 0.8;
@@ -1208,7 +1180,7 @@ describe('Arbitrager', () => {
         invertedSpread: 100,
         availableVolume: 1,
         targetVolume: 1,
-        targetProfit: 100
+        targetProfit: 100,
       };
     });
     const searcher = new OppotunitySearcher(
@@ -1231,8 +1203,7 @@ describe('Arbitrager', () => {
 
   test('Send and both orders unfilled -> proceed', async () => {
     config.onSingleLeg = { action: 'Proceed', options: { limitMovePercent: 10 } } as OnSingleLegConfig;
-    let i = 1;
-    baRouter.refresh = jest.fn().mockImplementation(async order => {
+    baRouter.refresh = jest.fn().mockImplementation(async (order) => {
       order.filledSize = 0;
       if (order.side === OrderSide.Buy) {
         order.filledSize = 0;
@@ -1246,7 +1217,7 @@ describe('Arbitrager', () => {
         invertedSpread: 100,
         availableVolume: 1,
         targetVolume: 1,
-        targetProfit: 100
+        targetProfit: 100,
       };
     });
     const searcher = new OppotunitySearcher(
@@ -1269,8 +1240,7 @@ describe('Arbitrager', () => {
 
   test('Send and only buy order filled -> invalid action', async () => {
     config.onSingleLeg = { options: { limitMovePercent: 10 } } as OnSingleLegConfig;
-    let i = 1;
-    baRouter.refresh = jest.fn().mockImplementation(async order => {
+    baRouter.refresh = jest.fn().mockImplementation(async (order) => {
       order.filledSize = 0;
       if (order.side === OrderSide.Buy) {
         order.status = OrderStatus.Filled;
@@ -1285,7 +1255,7 @@ describe('Arbitrager', () => {
         invertedSpread: 100,
         availableVolume: 1,
         targetVolume: 1,
-        targetProfit: 100
+        targetProfit: 100,
       };
     });
     const searcher = new OppotunitySearcher(
@@ -1315,7 +1285,7 @@ describe('Arbitrager', () => {
         invertedSpread: 100,
         availableVolume: 1,
         targetVolume: 1,
-        targetProfit: 100
+        targetProfit: 100,
       };
     });
     const searcher = new OppotunitySearcher(
@@ -1342,7 +1312,7 @@ describe('Arbitrager', () => {
         invertedSpread: 100,
         availableVolume: 1,
         targetVolume: 1,
-        targetProfit: 100
+        targetProfit: 100,
       };
     });
     baRouter.send = () => {
@@ -1372,7 +1342,7 @@ describe('Arbitrager', () => {
         invertedSpread: 100,
         availableVolume: 1,
         targetVolume: 1,
-        targetProfit: 100
+        targetProfit: 100,
       };
     });
     baRouter.send = () => {
@@ -1403,7 +1373,7 @@ describe('Arbitrager', () => {
         invertedSpread: 100,
         availableVolume: 1,
         targetVolume: 1,
-        targetProfit: 100
+        targetProfit: 100,
       };
     });
     baRouter.refresh = () => {
@@ -1425,7 +1395,7 @@ describe('Arbitrager', () => {
   });
 
   test('Send and filled', async () => {
-    baRouter.refresh.mockImplementation(order => (order.status = OrderStatus.Filled));
+    baRouter.refresh.mockImplementation((order) => (order.status = OrderStatus.Filled));
     config.maxRetryCount = 3;
     spreadAnalyzer.analyze.mockImplementation(() => {
       return {
@@ -1434,7 +1404,7 @@ describe('Arbitrager', () => {
         invertedSpread: 100,
         availableVolume: 1,
         targetVolume: 1,
-        targetProfit: 100
+        targetProfit: 100,
       };
     });
     const searcher = new OppotunitySearcher(
@@ -1453,7 +1423,7 @@ describe('Arbitrager', () => {
   });
 
   test('Send and filled with commission', async () => {
-    baRouter.refresh.mockImplementation(order => (order.status = OrderStatus.Filled));
+    baRouter.refresh.mockImplementation((order) => (order.status = OrderStatus.Filled));
     config.maxRetryCount = 3;
     config.brokers[0].commissionPercent = 0.1;
     config.brokers[1].commissionPercent = 0.2;
@@ -1465,7 +1435,7 @@ describe('Arbitrager', () => {
         invertedSpread: 100,
         availableVolume: 1,
         targetVolume: 1,
-        targetProfit: 100
+        targetProfit: 100,
       };
     });
     const searcher = new OppotunitySearcher(
@@ -1488,20 +1458,14 @@ describe('Arbitrager', () => {
       toQuote('Quoine', QuoteSide.Ask, 700, 4),
       toQuote('Quoine', QuoteSide.Bid, 600, 4),
       toQuote('Coincheck', QuoteSide.Ask, 500, 1),
-      toQuote('Coincheck', QuoteSide.Bid, 400, 1)
+      toQuote('Coincheck', QuoteSide.Bid, 400, 1),
     ];
-    baRouter.refresh.mockImplementation(order => (order.status = OrderStatus.Filled));
+    baRouter.refresh.mockImplementation((order) => (order.status = OrderStatus.Filled));
     config.maxRetryCount = 3;
     config.minTargetProfit = 50;
     config.minExitTargetProfit = -1000;
     const sa = new SpreadAnalyzer(configStore);
-    const searcher = new OppotunitySearcher(
-      configStore,
-      positionService,
-      sa,
-      limitCheckerFactory,
-      activePairStore
-    );
+    const searcher = new OppotunitySearcher(configStore, positionService, sa, limitCheckerFactory, activePairStore);
     const trader = new PairTrader(configStore, baRouter, activePairStore, new SingleLegHandler(baRouter, configStore));
     const arbitrager = new Arbitrager(quoteAggregator, configStore, positionService, searcher, trader);
     positionService.isStarted = true;
@@ -1520,24 +1484,15 @@ describe('Arbitrager', () => {
       toQuote('Quoine', QuoteSide.Ask, 700, 4),
       toQuote('Quoine', QuoteSide.Bid, 600, 4),
       toQuote('Coincheck', QuoteSide.Ask, 500, 1),
-      toQuote('Coincheck', QuoteSide.Bid, 400, 1)
+      toQuote('Coincheck', QuoteSide.Bid, 400, 1),
     ];
-    const quotes2 = [
-      toQuote('Quoine', QuoteSide.Bid, 601, 4),
-      toQuote('Coincheck', QuoteSide.Ask, 501, 1)
-    ];
-    baRouter.refresh.mockImplementation(order => (order.status = OrderStatus.Filled));
+    const quotes2 = [toQuote('Quoine', QuoteSide.Bid, 601, 4), toQuote('Coincheck', QuoteSide.Ask, 501, 1)];
+    baRouter.refresh.mockImplementation((order) => (order.status = OrderStatus.Filled));
     config.maxRetryCount = 3;
     config.minTargetProfit = 50;
     config.minExitTargetProfit = -1000;
     const sa = new SpreadAnalyzer(configStore);
-    const searcher = new OppotunitySearcher(
-      configStore,
-      positionService,
-      sa,
-      limitCheckerFactory,
-      activePairStore
-    );
+    const searcher = new OppotunitySearcher(configStore, positionService, sa, limitCheckerFactory, activePairStore);
     const trader = new PairTrader(configStore, baRouter, activePairStore, new SingleLegHandler(baRouter, configStore));
     const arbitrager = new Arbitrager(quoteAggregator, configStore, positionService, searcher, trader);
     positionService.isStarted = true;
@@ -1550,14 +1505,14 @@ describe('Arbitrager', () => {
     await quoteAggregator.emitParallel('quoteUpdated', quotes2);
     expect(arbitrager.status).toBe('Filled');
     expect((await activePairStore.getAll()).length).toBe(2);
- 
+
     // closing
     await quoteAggregator.emitParallel('quoteUpdated', qs);
     expect(arbitrager.status).toBe('Closed');
     const pairs = await activePairStore.getAll();
     expect(pairs.length).toBe(1);
     expect(pairs[0].value[0].price).toBe(501);
- 
+
     await quoteAggregator.emitParallel('quoteUpdated', quotes);
     expect(arbitrager.status).toBe('Closed');
     expect((await activePairStore.getAll()).length).toBe(0);
@@ -1568,20 +1523,14 @@ describe('Arbitrager', () => {
       toQuote('Quoine', QuoteSide.Ask, 700, 4),
       toQuote('Quoine', QuoteSide.Bid, 600, 4),
       toQuote('Coincheck', QuoteSide.Ask, 500, 1),
-      toQuote('Coincheck', QuoteSide.Bid, 400, 1)
+      toQuote('Coincheck', QuoteSide.Bid, 400, 1),
     ];
-    baRouter.refresh.mockImplementation(order => (order.status = OrderStatus.Filled));
+    baRouter.refresh.mockImplementation((order) => (order.status = OrderStatus.Filled));
     config.maxRetryCount = 3;
     config.minTargetProfit = 50;
     config.minExitTargetProfitPercent = -80;
     const sa = new SpreadAnalyzer(configStore);
-    const searcher = new OppotunitySearcher(
-      configStore,
-      positionService,
-      sa,
-      limitCheckerFactory,
-      activePairStore
-    );
+    const searcher = new OppotunitySearcher(configStore, positionService, sa, limitCheckerFactory, activePairStore);
     const trader = new PairTrader(configStore, baRouter, activePairStore, new SingleLegHandler(baRouter, configStore));
     const arbitrager = new Arbitrager(quoteAggregator, configStore, positionService, searcher, trader);
     positionService.isStarted = true;
@@ -1600,20 +1549,14 @@ describe('Arbitrager', () => {
       toQuote('Quoine', QuoteSide.Ask, 700, 4),
       toQuote('Quoine', QuoteSide.Bid, 600, 4),
       toQuote('Coincheck', QuoteSide.Ask, 500, 1),
-      toQuote('Coincheck', QuoteSide.Bid, 400, 1)
+      toQuote('Coincheck', QuoteSide.Bid, 400, 1),
     ];
-    baRouter.refresh.mockImplementation(order => (order.status = OrderStatus.Filled));
+    baRouter.refresh.mockImplementation((order) => (order.status = OrderStatus.Filled));
     config.maxRetryCount = 3;
     config.minTargetProfit = 50;
     config.minExitTargetProfitPercent = -20;
     const sa = new SpreadAnalyzer(configStore);
-    const searcher = new OppotunitySearcher(
-      configStore,
-      positionService,
-      sa,
-      limitCheckerFactory,
-      activePairStore
-    );
+    const searcher = new OppotunitySearcher(configStore, positionService, sa, limitCheckerFactory, activePairStore);
     const trader = new PairTrader(configStore, baRouter, activePairStore, new SingleLegHandler(baRouter, configStore));
     const arbitrager = new Arbitrager(quoteAggregator, configStore, positionService, searcher, trader);
     positionService.isStarted = true;
@@ -1632,20 +1575,14 @@ describe('Arbitrager', () => {
       toQuote('Quoine', QuoteSide.Ask, 700, 4),
       toQuote('Quoine', QuoteSide.Bid, 600, 4),
       toQuote('Coincheck', QuoteSide.Ask, 500, 1),
-      toQuote('Coincheck', QuoteSide.Bid, 400, 1)
+      toQuote('Coincheck', QuoteSide.Bid, 400, 1),
     ];
-    baRouter.refresh.mockImplementation(order => (order.status = OrderStatus.Filled));
+    baRouter.refresh.mockImplementation((order) => (order.status = OrderStatus.Filled));
     config.maxRetryCount = 3;
     config.minTargetProfit = 50;
     config.minExitTargetProfit = -200;
     const sa = new SpreadAnalyzer(configStore);
-    const searcher = new OppotunitySearcher(
-      configStore,
-      positionService,
-      sa,
-      limitCheckerFactory,
-      activePairStore
-    );
+    const searcher = new OppotunitySearcher(configStore, positionService, sa, limitCheckerFactory, activePairStore);
     const trader = new PairTrader(configStore, baRouter, activePairStore, new SingleLegHandler(baRouter, configStore));
     const arbitrager = new Arbitrager(quoteAggregator, configStore, positionService, searcher, trader);
     positionService.isStarted = true;
@@ -1662,7 +1599,7 @@ describe('Arbitrager', () => {
       toQuote('Quoine', QuoteSide.Ask, 620, 4),
       toQuote('Quoine', QuoteSide.Bid, 600, 4),
       toQuote('Coincheck', QuoteSide.Ask, 500, 1),
-      toQuote('Coincheck', QuoteSide.Bid, 450, 1)
+      toQuote('Coincheck', QuoteSide.Bid, 450, 1),
     ];
     await quoteAggregator.emitParallel('quoteUpdated', quotes2);
     expect(arbitrager.status).toBe('Closed');
@@ -1677,20 +1614,14 @@ describe('Arbitrager', () => {
       toQuote('Quoine', QuoteSide.Ask, 700, 4),
       toQuote('Quoine', QuoteSide.Bid, 600, 4),
       toQuote('Coincheck', QuoteSide.Ask, 500, 1),
-      toQuote('Coincheck', QuoteSide.Bid, 400, 1)
+      toQuote('Coincheck', QuoteSide.Bid, 400, 1),
     ];
-    baRouter.refresh.mockImplementation(order => (order.status = OrderStatus.Filled));
+    baRouter.refresh.mockImplementation((order) => (order.status = OrderStatus.Filled));
     config.maxRetryCount = 3;
     config.minTargetProfit = 50;
     config.minExitTargetProfit = -1000;
     const sa = new SpreadAnalyzer(configStore);
-    const searcher = new OppotunitySearcher(
-      configStore,
-      positionService,
-      sa,
-      limitCheckerFactory,
-      activePairStore
-    );
+    const searcher = new OppotunitySearcher(configStore, positionService, sa, limitCheckerFactory, activePairStore);
     const trader = new PairTrader(configStore, baRouter, activePairStore, new SingleLegHandler(baRouter, configStore));
     const arbitrager = new Arbitrager(quoteAggregator, configStore, positionService, searcher, trader);
     positionService.isStarted = true;
@@ -1709,20 +1640,14 @@ describe('Arbitrager', () => {
       toQuote('Quoine', QuoteSide.Ask, 700, 4),
       toQuote('Quoine', QuoteSide.Bid, 600, 4),
       toQuote('Coincheck', QuoteSide.Ask, 500, 1),
-      toQuote('Coincheck', QuoteSide.Bid, 400, 1)
+      toQuote('Coincheck', QuoteSide.Bid, 400, 1),
     ];
-    baRouter.refresh.mockImplementation(order => (order.status = OrderStatus.Filled));
+    baRouter.refresh.mockImplementation((order) => (order.status = OrderStatus.Filled));
     config.maxRetryCount = 3;
     config.minTargetProfit = 50;
     config.minExitTargetProfit = -1000;
     const sa = new SpreadAnalyzer(configStore);
-    const searcher = new OppotunitySearcher(
-      configStore,
-      positionService,
-      sa,
-      limitCheckerFactory,
-      activePairStore
-    );
+    const searcher = new OppotunitySearcher(configStore, positionService, sa, limitCheckerFactory, activePairStore);
     const trader = new PairTrader(configStore, baRouter, activePairStore, new SingleLegHandler(baRouter, configStore));
     const arbitrager = new Arbitrager(quoteAggregator, configStore, positionService, searcher, trader);
     positionService.isStarted = true;
@@ -1737,7 +1662,7 @@ describe('Arbitrager', () => {
   });
 
   test('Not close filled orders with maxTargetVolumePercent', async () => {
-    baRouter.refresh.mockImplementation(order => (order.status = OrderStatus.Filled));
+    baRouter.refresh.mockImplementation((order) => (order.status = OrderStatus.Filled));
     config.maxRetryCount = 3;
     config.minTargetProfit = 50;
     config.minExitTargetProfit = -1000;
@@ -1751,7 +1676,7 @@ describe('Arbitrager', () => {
           invertedSpread: 100,
           availableVolume: 2,
           targetVolume: 1,
-          targetProfit: 100
+          targetProfit: 100,
         };
       })
       .mockImplementation(() => {
@@ -1761,7 +1686,7 @@ describe('Arbitrager', () => {
           invertedSpread: 300,
           availableVolume: 1,
           targetVolume: 1,
-          targetProfit: 100
+          targetProfit: 100,
         };
       });
     const searcher = new OppotunitySearcher(
@@ -1789,7 +1714,7 @@ describe('Arbitrager', () => {
       toQuote('Quoine', QuoteSide.Ask, 700, 4),
       toQuote('Quoine', QuoteSide.Bid, 600, 4),
       toQuote('Coincheck', QuoteSide.Ask, 500, 1),
-      toQuote('Coincheck', QuoteSide.Bid, 400, 1)
+      toQuote('Coincheck', QuoteSide.Bid, 400, 1),
     ];
     baRouter.refresh.mockImplementation((order: Order) => {
       order.status = OrderStatus.Filled;
@@ -1800,13 +1725,7 @@ describe('Arbitrager', () => {
     config.minTargetProfit = 50;
     config.exitNetProfitRatio = -200;
     const sa = new SpreadAnalyzer(configStore);
-    const searcher = new OppotunitySearcher(
-      configStore,
-      positionService,
-      sa,
-      limitCheckerFactory,
-      activePairStore
-    );
+    const searcher = new OppotunitySearcher(configStore, positionService, sa, limitCheckerFactory, activePairStore);
     const trader = new PairTrader(configStore, baRouter, activePairStore, new SingleLegHandler(baRouter, configStore));
     const arbitrager = new Arbitrager(quoteAggregator, configStore, positionService, searcher, trader);
     positionService.isStarted = true;
@@ -1825,7 +1744,7 @@ describe('Arbitrager', () => {
       toQuote('Quoine', QuoteSide.Ask, 700, 4),
       toQuote('Quoine', QuoteSide.Bid, 600, 4),
       toQuote('Coincheck', QuoteSide.Ask, 500, 1),
-      toQuote('Coincheck', QuoteSide.Bid, 400, 1)
+      toQuote('Coincheck', QuoteSide.Bid, 400, 1),
     ];
     baRouter.refresh.mockImplementation((order: Order) => {
       order.status = OrderStatus.Filled;
@@ -1836,13 +1755,7 @@ describe('Arbitrager', () => {
     config.minTargetProfit = 50;
     config.exitNetProfitRatio = -199;
     const sa = new SpreadAnalyzer(configStore);
-    const searcher = new OppotunitySearcher(
-      configStore,
-      positionService,
-      sa,
-      limitCheckerFactory,
-      activePairStore
-    );
+    const searcher = new OppotunitySearcher(configStore, positionService, sa, limitCheckerFactory, activePairStore);
     const trader = new PairTrader(configStore, baRouter, activePairStore, new SingleLegHandler(baRouter, configStore));
     const arbitrager = new Arbitrager(quoteAggregator, configStore, positionService, searcher, trader);
     positionService.isStarted = true;
@@ -1861,7 +1774,7 @@ describe('Arbitrager', () => {
       toQuote('Quoine', QuoteSide.Ask, 700, 4),
       toQuote('Quoine', QuoteSide.Bid, 600, 4),
       toQuote('Coincheck', QuoteSide.Ask, 500, 1),
-      toQuote('Coincheck', QuoteSide.Bid, 400, 1)
+      toQuote('Coincheck', QuoteSide.Bid, 400, 1),
     ];
     baRouter.refresh.mockImplementation((order: Order) => {
       order.status = OrderStatus.Filled;
@@ -1874,13 +1787,7 @@ describe('Arbitrager', () => {
     config.brokers[0].commissionPercent = 0.15;
     config.brokers[1].commissionPercent = 0.15;
     const sa = new SpreadAnalyzer(configStore);
-    const searcher = new OppotunitySearcher(
-      configStore,
-      positionService,
-      sa,
-      limitCheckerFactory,
-      activePairStore
-    );
+    const searcher = new OppotunitySearcher(configStore, positionService, sa, limitCheckerFactory, activePairStore);
     const trader = new PairTrader(configStore, baRouter, activePairStore, new SingleLegHandler(baRouter, configStore));
     const arbitrager = new Arbitrager(quoteAggregator, configStore, positionService, searcher, trader);
     positionService.isStarted = true;
