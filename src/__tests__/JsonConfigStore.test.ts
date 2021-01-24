@@ -9,7 +9,7 @@ import { ConfigRequester } from '../messages';
 import ConfigValidator from '../ConfigValidator';
 options.enabled = false;
 
-const configStoreSocketUrl = 'tcp://127.0.0.1:8799';
+const configStoreSocketUrl = 'tcp://127.0.0.1:8797';
 
 describe('JsonConfigStore', () => {
   test('JsonConfigStore', async () => {

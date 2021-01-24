@@ -6,7 +6,7 @@ import { ConfigResponder, SnapshotResponder } from '../messages';
 import { ConfigRoot } from '../types';
 
 options.enabled = false;
-export const configStoreSocketUrl = 'tcp://127.0.0.1:8799';
+export const configStoreSocketUrl = 'tcp://127.0.0.1:8797';
 export const reportServicePubUrl = 'tcp://127.0.0.1:8790';
 export const reportServiceRepUrl = 'tcp://127.0.0.1:8791';
 
@@ -20,32 +20,41 @@ describe('AnalyticsService', () => {
       },
     } as unknown) as ConfigRoot;
 
-    let configServer, rsPub, rsRep, as;
     try {
-      configServer = new ConfigResponder(configStoreSocketUrl, (request, respond) => {
+      let configServer = new ConfigResponder(configStoreSocketUrl, (request, respond) => {
         respond({ success: true, data: config });
       });
-
-      rsPub = socket('pub');
-      rsPub.bindSync(reportServicePubUrl);
-
-      rsRep = new SnapshotResponder(reportServiceRepUrl, (request, respond) => {
-        respond({ success: true, data: [] });
-      });
-      as = new AnalyticsService();
-      await as.start();
-      await delay(10);
+      try {
+        let rsPub = socket('pub');
+        try {
+          rsPub.bindSync(reportServicePubUrl);
+          try {
+            let rsRep = new SnapshotResponder(reportServiceRepUrl, (request, respond) => {
+              respond({ success: true, data: [] });
+            });
+            try {
+              let as = new AnalyticsService(configStoreSocketUrl, reportServicePubUrl, reportServiceRepUrl);
+              try {
+                await as.start();
+                await delay(10);
+              } finally {
+                await as.stop();
+              }
+            } finally {
+              rsRep.dispose();
+            }
+          } finally {
+            rsPub.unbindSync(reportServicePubUrl);
+          }
+        } finally {
+          rsPub.close();
+        }
+      } finally {
+        configServer.dispose();
+      }
     } catch (ex) {
       console.log(ex);
       expect(true).toBe(false);
-    } finally {
-      rsPub.unbindSync(reportServicePubUrl);
-      configServer.dispose();
-      rsPub.close();
-      rsRep.dispose();
-      if (as) {
-        await as.stop();
-      }
     }
   });
 
@@ -70,7 +79,7 @@ describe('AnalyticsService', () => {
       rsRep = new SnapshotResponder(reportServiceRepUrl, (request, respond) => {
         respond({ success: false, data: [] });
       });
-      as = new AnalyticsService();
+      as = new AnalyticsService(configStoreSocketUrl, reportServicePubUrl, reportServiceRepUrl);
       await as.start();
     } catch (ex) {
       expect(ex.message).toBe('Failed to initial snapshot message.');
@@ -87,13 +96,13 @@ describe('AnalyticsService', () => {
   });
 
   test('invalid config', async () => {
-    const config = {
+    const config = ({
       analytics: {
         enabled: true,
         plugin: '../src/__tests__/DummyPlugin.ts',
         initHistory: { minutes: 3 },
       },
-    } as unknown as ConfigRoot;
+    } as unknown) as ConfigRoot;
     let configServer, rsPub, rsRep, as;
 
     try {
@@ -108,7 +117,7 @@ describe('AnalyticsService', () => {
         respond({ success: true, data: undefined });
       });
 
-      as = new AnalyticsService();
+      as = new AnalyticsService(configStoreSocketUrl, reportServicePubUrl, reportServiceRepUrl);
       await as.start();
       expect(true).toBe(false);
     } catch (ex) {
@@ -126,13 +135,13 @@ describe('AnalyticsService', () => {
   });
 
   test('invalid config json', async () => {
-    const config = {
+    const config = ({
       analytics: {
         enabled: true,
         plugin: '../src/__tests__/DummyPlugin.ts',
         initHistory: { minutes: 3 },
       },
-    } as unknown as ConfigRoot;
+    } as unknown) as ConfigRoot;
 
     let configServer, rsPub, rsRep, as;
     try {
@@ -148,7 +157,7 @@ describe('AnalyticsService', () => {
       rsRep.on('message', () => {
         rsRep.send('{invalid');
       });
-      as = new AnalyticsService();
+      as = new AnalyticsService(configStoreSocketUrl, reportServicePubUrl, reportServiceRepUrl);
       await as.start();
       expect(true).toBe(false);
     } catch (ex) {
@@ -167,13 +176,13 @@ describe('AnalyticsService', () => {
   });
 
   test('handleStream', async () => {
-    const config = {
+    const config = ({
       analytics: {
         enabled: true,
         plugin: '../src/__tests__/DummyPlugin.ts',
         initHistory: { minutes: 3 },
       },
-    } as unknown as ConfigRoot;
+    } as unknown) as ConfigRoot;
     let configServer, rsPub, rsRep, as;
     try {
       configServer = new ConfigResponder(configStoreSocketUrl, (request, respond) => {
@@ -187,7 +196,7 @@ describe('AnalyticsService', () => {
         respond({ success: true, data: [] });
       });
 
-      as = new AnalyticsService();
+      as = new AnalyticsService(configStoreSocketUrl, reportServicePubUrl, reportServiceRepUrl);
       await as.start();
       as.streamSubscriber.subscribe('sometopic', (message) => console.log(message));
       await delay(100);
@@ -222,13 +231,13 @@ describe('AnalyticsService', () => {
   });
 
   test('stop message', async () => {
-    const config = {
+    const config = ({
       analytics: {
         enabled: true,
         plugin: '../src/__tests__/DummyPlugin.ts',
         initHistory: { minutes: 3 },
       },
-    } as unknown as ConfigRoot;
+    } as unknown) as ConfigRoot;
 
     let configServer, rsPub, rsRep, as;
     try {
@@ -242,7 +251,7 @@ describe('AnalyticsService', () => {
       rsRep = new SnapshotResponder(reportServiceRepUrl, (request, respond) => {
         respond({ success: true, data: [] });
       });
-      as = new AnalyticsService();
+      as = new AnalyticsService(configStoreSocketUrl, reportServicePubUrl, reportServiceRepUrl);
       await as.start();
       process.emit('message', 'invalid', undefined);
       process.emit('message', 'stop', undefined);

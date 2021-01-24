@@ -3,7 +3,6 @@ import { ChronoDB, TimeSeries } from '../chronodb/index';
 let chrono: ChronoDB;
 beforeAll(() => {
   const path = `${__dirname}/database`;
-  console.log(`chronodb.test.ts: path=${path}`);
   chrono = new ChronoDB(path);
 });
 
@@ -81,8 +80,8 @@ describe('object db', () => {
     await timeSeries.put({ field1: 's1', field2: 1 });
     const end = new Date();
     const result = await timeSeries.query({ start: new Date(0), end });
-    console.log(end.valueOf());
-    console.log(await timeSeries.getAll());
+    end.valueOf();
+    await timeSeries.getAll();
     expect(result[0].value).toEqual({ field1: 's1', field2: 1 });
     expect(result.length).toBe(1);
   });

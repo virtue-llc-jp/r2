@@ -18,10 +18,13 @@ export default class AnalyticsService {
   private readonly configRequester: ConfigRequester;
   private spreadStatHandler: SpreadStatHandlerPlugin;
 
-  constructor() {
-    this.configRequester = new ConfigRequester(configStoreSocketUrl);
-    this.snapshotRequester = new SnapshotRequester(reportServiceRepUrl);
-    this.streamSubscriber = new ZmqSubscriber(reportServicePubUrl);
+  constructor(
+    confUrl?: string,
+    repUrl?: string,
+    pubUrl?: string) {
+    this.configRequester = new ConfigRequester(confUrl ?? configStoreSocketUrl);
+    this.snapshotRequester = new SnapshotRequester(repUrl ?? reportServiceRepUrl);
+    this.streamSubscriber = new ZmqSubscriber(pubUrl ?? reportServicePubUrl);
   }
 
   async start(): Promise<void> {

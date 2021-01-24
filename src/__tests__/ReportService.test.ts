@@ -225,7 +225,7 @@ describe('ReportService', () => {
     let client;
     try {
       await rs.start();
-      client = new SnapshotRequester('');
+      client = new SnapshotRequester('tcp://localhost:8711');
       const reply = await client.request('invalid');
       expect(reply.success).toBe(false);
       await rs.stop();

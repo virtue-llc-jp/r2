@@ -8,7 +8,6 @@ test('simple', async () => {
   const sub = new ZmqSubscriber(url);
   let received = false;
   sub.subscribe(topic, message => {
-    console.log(message);
     expect(message).toBe('message');
     received = true;
   });  
