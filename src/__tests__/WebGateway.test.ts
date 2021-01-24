@@ -73,7 +73,7 @@ describe('WebGateway', () => {
     try {
       await wg.start();
       await delay(10);
-      ws = new WebSocket('ws://localhost:8720');
+      ws = new WebSocket('ws://localhost:8798');
       await delay(10);
       quoteAggregator.emit('quoteUpdated');
       positionService.emit('positionUpdated');

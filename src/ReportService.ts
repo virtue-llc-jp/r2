@@ -1,5 +1,5 @@
 import SpreadAnalyzer from './SpreadAnalyzer';
-import { injectable, inject } from 'inversify';
+import { injectable, inject, unmanaged } from 'inversify';
 import symbols from './symbols';
 import { SpreadStatTimeSeries, Quote, ConfigStore } from './types';
 import QuoteAggregator from './QuoteAggregator';
@@ -33,7 +33,9 @@ export default class ReportService {
     private readonly quoteAggregator: QuoteAggregator,
     private readonly spreadAnalyzer: SpreadAnalyzer,
     @inject(symbols.SpreadStatTimeSeries) private readonly spreadStatTimeSeries: SpreadStatTimeSeries,
-    @inject(symbols.ConfigStore) private readonly configStore: ConfigStore
+    @inject(symbols.ConfigStore) private readonly configStore: ConfigStore,
+    @unmanaged() private readonly pubUrl?: string,
+    @unmanaged() private readonly repUrl?: string
   ) {}
 
   async start() {
@@ -52,14 +54,14 @@ export default class ReportService {
       const start = dt.minus(duration).toJSDate();
       const end = dt.toJSDate();
       const snapshot = await this.spreadStatTimeSeries.query({ start, end });
-      this.snapshotResponder = new SnapshotResponder(reportServiceRepUrl, (request, respond) => {
+      this.snapshotResponder = new SnapshotResponder(this.repUrl ?? reportServiceRepUrl, (request, respond) => {
         if (request && request.type === 'spreadStatSnapshot') {
           respond({ success: true, data: snapshot.map(s => s.value) });
         } else {
           respond({ success: false, reason: 'invalid request' });
         }
       });
-      this.streamPublisher = new ZmqPublisher(reportServicePubUrl);
+      this.streamPublisher = new ZmqPublisher(this.pubUrl ?? reportServicePubUrl);
       this.analyticsProcess = fork(this.analyticsPath, [], { stdio: [0, 1, 2, 'ipc'] });
     }
     this.log.debug('Started.');

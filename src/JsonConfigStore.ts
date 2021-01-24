@@ -1,4 +1,4 @@
-import { injectable } from 'inversify';
+import { injectable, unmanaged } from 'inversify';
 import { ConfigStore, ConfigRoot } from './types';
 import { getConfigRoot, getConfigPath } from './configUtil';
 import ConfigValidator from './ConfigValidator';
@@ -21,9 +21,9 @@ export default class JsonConfigStore extends EventEmitter implements ConfigStore
   TTL = 5 * 1000;
   private cache?: ConfigRoot;
 
-  constructor(private readonly configValidator: ConfigValidator) {
+  constructor(private readonly configValidator: ConfigValidator, @unmanaged() url?: string) {
     super();
-    this.responder = new ConfigResponder(configStoreSocketUrl, (request, respond) =>
+    this.responder = new ConfigResponder(url ?? configStoreSocketUrl, (request, respond) =>
       this.requestHandler(request, respond)
     );
   }

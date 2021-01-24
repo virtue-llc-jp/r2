@@ -1,4 +1,4 @@
-import { injectable, inject } from 'inversify';
+import { injectable, inject, unmanaged } from 'inversify';
 import symbols from './symbols';
 import {
   Quote,
@@ -39,7 +39,8 @@ export default class WebGateway {
     @inject(symbols.ConfigStore) private readonly configStore: ConfigStore,
     private readonly positionService: PositionService,
     private readonly opportunitySearcher: OppotunitySearcher,
-    private readonly orderService: OrderService
+    private readonly orderService: OrderService,
+    @unmanaged() private readonly port?: number
   ) {
     this.eventMapper = [
       [this.quoteAggregator, 'quoteUpdated', this.quoteUpdated],
@@ -70,8 +71,8 @@ export default class WebGateway {
     this.app.get('*', (req, res) => {
       res.sendFile(`${this.staticPath}/index.html`);
     });
-    this.server = this.app.listen(wssPort, host, () => {
-      this.log.debug(`Express started listening on ${wssPort}.`);
+    this.server = this.app.listen(this.port ?? wssPort, host, () => {
+      this.log.debug(`Express started listening on ${this.port ?? wssPort}.`);
     });
     this.wss = new WebSocket.Server({ server: this.server });
     this.wss.on('connection', ws => {
@@ -81,7 +82,7 @@ export default class WebGateway {
       this.clients.push(ws);
     });
     if (webGateway.openBrowser) {
-      opn(`http://${host}:${wssPort}`);
+      opn(`http://${host}:${this.port ?? wssPort}`);
     }
     this.log.debug(`Started ${this.constructor.name}.`);
   }
