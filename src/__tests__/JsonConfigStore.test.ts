@@ -1,26 +1,18 @@
 import 'reflect-metadata';
 import JsonConfigStore from '../JsonConfigStore';
-import { ConfigStore, ConfigRoot, Broker } from '../types';
+import { ConfigRoot } from '../types';
 import { options } from '@bitr/logger';
 import { delay } from '../util';
 import * as _ from 'lodash';
 import { Socket, socket } from 'zeromq';
 import { configStoreSocketUrl } from '../constants';
-import { ZmqRequester } from '@bitr/zmq';
 import { ConfigRequester } from '../messages';
+import ConfigValidator from '../ConfigValidator';
 options.enabled = false;
-
-function parseBuffer<T>(buffer: Buffer): T | undefined {
-  try {
-    return JSON.parse(buffer.toString());
-  } catch (ex) {
-    return undefined;
-  }
-}
 
 describe('JsonConfigStore', () => {
   test('JsonConfigStore', async () => {
-    const validator = { validate: (config: ConfigRoot) => true };
+    const validator = ({ validate: (config: ConfigRoot) => true } as unknown) as ConfigValidator;
     const store = new JsonConfigStore(validator);
     store.TTL = 5;
     expect(store.config.language).toBe('en');
@@ -41,7 +33,7 @@ describe('JsonConfigStore', () => {
   test('set', async () => {
     let store: JsonConfigStore;
     try {
-      const validator = { validate: (config: ConfigRoot) => true };
+      const validator = ({ validate: (config: ConfigRoot) => true } as unknown) as ConfigValidator;
       store = new JsonConfigStore(validator);
       store.TTL = 5;
       expect(store.config.minSize).toBe(0.01);
@@ -63,7 +55,7 @@ describe('JsonConfigStore', () => {
     let store: JsonConfigStore;
     let client: ConfigRequester;
     try {
-      const validator = { validate: (config: ConfigRoot) => true };
+      const validator = ({ validate: (config: ConfigRoot) => true } as unknown) as ConfigValidator;
       store = new JsonConfigStore(validator);
       store.TTL = 5;
       expect(store.config.minSize).toBe(0.01);
@@ -76,7 +68,9 @@ describe('JsonConfigStore', () => {
       expect(store.config.minSize).toBe(0.01);
     } catch (ex) {
       console.log(ex);
-      if (process.env.CI && ex.message === 'Address already in use') return;
+      if (process.env.CI && ex.message === 'Address already in use') {
+        return;
+      }
       expect(true).toBe(false);
     } finally {
       store.close();
@@ -88,14 +82,14 @@ describe('JsonConfigStore', () => {
     let store: JsonConfigStore;
     let client: Socket;
     try {
-      const validator = { validate: (config: ConfigRoot) => true };
+      const validator = ({ validate: (config: ConfigRoot) => true } as unknown) as ConfigValidator;
       store = new JsonConfigStore(validator);
       store.TTL = 5;
       expect(store.config.minSize).toBe(0.01);
 
       client = socket('req');
       client.connect(configStoreSocketUrl);
-      const reply = await new Promise(resolve => {
+      const reply = await new Promise((resolve) => {
         client.once('message', resolve);
         client.send('invalid message');
       });
@@ -105,7 +99,9 @@ describe('JsonConfigStore', () => {
       expect(store.config.minSize).toBe(0.01);
     } catch (ex) {
       console.log(ex);
-      if (process.env.CI && ex.message === 'Address already in use') return;
+      if (process.env.CI && ex.message === 'Address already in use') {
+        return;
+      }
       expect(true).toBe(false);
     } finally {
       store.close();
@@ -115,16 +111,16 @@ describe('JsonConfigStore', () => {
 
   test('server: configValidator throws', async () => {
     let store: JsonConfigStore;
-    let client: ConfigRequester;
+    let client: ConfigRequester = undefined;
     try {
-      const validator = {
+      const validator = ({
         validate: (config: ConfigRoot) => {
           if (config.maxNetExposure <= 0) {
             throw new Error();
           }
           return true;
-        }
-      };
+        },
+      } as unknown) as ConfigValidator;
       store = new JsonConfigStore(validator);
       store.TTL = 5;
       expect(store.config.minSize).toBe(0.01);
@@ -137,7 +133,9 @@ describe('JsonConfigStore', () => {
       expect(store.config.minSize).toBe(0.01);
     } catch (ex) {
       console.log(ex);
-      if (process.env.CI && ex.message === 'Address already in use') return;
+      if (process.env.CI && ex.message === 'Address already in use') {
+        return;
+      }
       expect(true).toBe(false);
     } finally {
       store.close();
@@ -147,9 +145,9 @@ describe('JsonConfigStore', () => {
 
   test('server: invalid message type', async () => {
     let store: JsonConfigStore;
-    let client: ConfigRequester;
+    let client: ConfigRequester = undefined;
     try {
-      const validator = { validate: (config: ConfigRoot) => true };
+      const validator = ({ validate: (config: ConfigRoot) => true } as unknown) as ConfigValidator;
       store = new JsonConfigStore(validator);
       store.TTL = 5;
       expect(store.config.minSize).toBe(0.01);
@@ -162,36 +160,50 @@ describe('JsonConfigStore', () => {
       expect(store.config.minSize).toBe(0.01);
     } catch (ex) {
       console.log(ex);
-      if (process.env.CI && ex.message === 'Address already in use') return;
+      if (process.env.CI && ex.message === 'Address already in use') {
+        return;
+      }
       expect(true).toBe(false);
     } finally {
-      if (store) store.close();
-      if (client) client.dispose();
+      if (store) {
+        store.close();
+      }
+      if (client) {
+        client.dispose();
+      }
     }
   });
 
   test('server: get', async () => {
-    let store: JsonConfigStore;
-    let client: ConfigRequester;
+    const validator = ({ validate: (config: ConfigRoot) => true } as unknown) as ConfigValidator;
     try {
-      const validator = { validate: (config: ConfigRoot) => true };
-      store = new JsonConfigStore(validator);
-      store.TTL = 5;
-      expect(store.config.minSize).toBe(0.01);
+      let store = new JsonConfigStore(validator);
+      try {
+        store.TTL = 5;
+        expect(store.config.minSize).toBe(0.01);
 
-      client = new ConfigRequester(configStoreSocketUrl);
-
-      const reply = await client.request({ type: 'get' });
-      expect(reply.success).toBe(true);
-      expect(reply.data.minSize).toBe(0.01);
-      expect(store.config.minSize).toBe(0.01);
+        let client = new ConfigRequester(configStoreSocketUrl);
+        try {
+          const reply = await client.request({ type: 'get' });
+          expect(reply.success).toBe(true);
+          expect(reply.data?.minSize).toBe(0.01);
+          expect(store.config.minSize).toBe(0.01);
+        } finally {
+          if (client) {
+            client.dispose();
+          }
+        }
+      } finally {
+        if (store) {
+          store.close();
+        }
+      }
     } catch (ex) {
       console.log(ex);
-      if (process.env.CI && ex.message === 'Address already in use') return;
+      if (process.env.CI && ex.message === 'Address already in use') {
+        return;
+      }
       expect(true).toBe(false);
-    } finally {
-      if (store) store.close();
-      if (client) client.dispose();
     }
   });
 });

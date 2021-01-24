@@ -33,9 +33,6 @@ describe('Quoine BrokerAdapter', () => {
   });
 
   test('send cash buy limit', async () => {
-    const config = {
-      brokers: [{ broker: 'Quoine', key: 'key', secret: 'secret', cashMarginType: CashMarginType.Cash }]
-    };
     const target = new BrokerAdapterImpl(brokerConfig);
     const order = createOrder('Quoine', OrderSide.Buy, 0.01, 783000, CashMarginType.Cash, OrderType.Limit, 10);
     await target.send(order);
@@ -126,7 +123,7 @@ describe('Quoine BrokerAdapter', () => {
     } as BrokerConfigType;
     const target = new BrokerAdapterImpl(wrongConfig);
     try {
-      const result = await target.getBtcPosition();
+      await target.getBtcPosition();
     } catch (ex) {
       expect(ex.message).toContain('Unable to find');
       return;
@@ -137,7 +134,7 @@ describe('Quoine BrokerAdapter', () => {
   test('getBtcPosition not found', async () => {
     const target = new BrokerAdapterImpl(brokerConfig);
     try {
-      const result = await target.getBtcPosition();
+      await target.getBtcPosition();
     } catch (ex) {
       return;
     }
@@ -156,6 +153,7 @@ describe('Quoine BrokerAdapter', () => {
       executions: [],
       broker: 'Quoine',
       size: 0.01,
+      filledSize: 0,
       side: OrderSide.Buy,
       price: 783000,
       cashMarginType: CashMarginType.NetOut,
@@ -180,6 +178,7 @@ describe('Quoine BrokerAdapter', () => {
       executions: [],
       broker: 'Quoine',
       size: 0.01,
+      filledSize: 0,
       side: OrderSide.Buy,
       price: 783000,
       cashMarginType: CashMarginType.NetOut,
@@ -204,6 +203,7 @@ describe('Quoine BrokerAdapter', () => {
       executions: [],
       broker: 'Quoine',
       size: 0.01,
+      filledSize: 0,
       side: OrderSide.Buy,
       price: 783000,
       cashMarginType: CashMarginType.NetOut,
@@ -228,6 +228,7 @@ describe('Quoine BrokerAdapter', () => {
       executions: [],
       broker: 'Quoine',
       size: 0.01,
+      filledSize: 0,
       side: OrderSide.Buy,
       price: 783000,
       cashMarginType: CashMarginType.NetOut,

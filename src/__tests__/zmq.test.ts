@@ -3,15 +3,16 @@ import { parseBuffer } from '../zmq/util';
 
 test('simple', async () => {
   const url = 'tcp://127.0.0.1:9876';
-  interface RequestType {
+  type RequestType = {
     type: string;
-  }
-  interface ResponseType {
+  };
+  type ResponseType = {
     success: boolean;
     data?: any;
     reason?: string;
-  }
-  const handler = (request: RequestType, respond: (response: ResponseType) => void) => {
+  };
+  type HandlerType = (request: RequestType, respond: (response: ResponseType) => void) => void;
+  const handler: HandlerType = (request: RequestType, respond: (response: ResponseType) => void) => {
     switch (request.type) {
       case 'get':
         respond({ success: true, data: { a: 1 } });
@@ -47,7 +48,7 @@ test('timeout', async () => {
   const responder = new ZmqResponder(url, handler);
   const requester = new ZmqRequester(url, 100);
   try {
-    let res = await requester.request({ type: 'get' });
+    await requester.request({ type: 'get' });
     expect(true).toBe(false);
   } catch (ex) {
     expect(ex.message).toBe('Request timed out.')

@@ -1,10 +1,6 @@
 import ZmqPublisher from '../zmq/ZmqPublisher';
 import ZmqSubscriber from '../zmq/ZmqSubscriber';
 
-function delay(time: number): Promise<void> {
-  return new Promise(resolve => setTimeout(resolve, time));
-}
-
 test('simple', async () => {
   const url = 'tcp://127.0.0.1:9879';
   const topic = 'topic';

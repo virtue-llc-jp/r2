@@ -14,7 +14,7 @@ import { EventEmitter } from 'events';
 export default class PositionService extends EventEmitter {
   private readonly log = getLogger(this.constructor.name);
   private timer;
-  private isRefreshing: boolean;
+  isRefreshing: boolean;
   private _positionMap: BrokerMap<BrokerPosition>;
   private retryCount: number;
   private previousInfoMsg: string;

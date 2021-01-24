@@ -18,7 +18,7 @@ export default class JsonConfigStore extends EventEmitter implements ConfigStore
   private readonly log = getLogger(this.constructor.name);
   private timer: NodeJS.Timer;
   private readonly responder: ConfigResponder;
-  private readonly TTL = 5 * 1000;
+  TTL = 5 * 1000;
   private cache?: ConfigRoot;
 
   constructor(private readonly configValidator: ConfigValidator) {
