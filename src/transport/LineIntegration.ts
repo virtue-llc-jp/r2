@@ -10,7 +10,7 @@ export default class LineIntegration {
     this.config = config;
   }
 
-  handler(message: string): void {
+  async handler(message: string): Promise<void> {
     const keywords = this.config.keywords;
     if (!(keywords instanceof Array)) {
       return;
@@ -32,7 +32,7 @@ export default class LineIntegration {
       },
       timeout: LineIntegration.fetchTimeout
     };
-    fetch(LineIntegration.apiUrl, init)
+    return fetch(LineIntegration.apiUrl, init)
       .then(res => {
         if (!res.ok) {
           res.text().then(s => console.log(`LINE notify failed. ${res.statusText}: ${s}`));

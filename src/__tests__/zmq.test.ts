@@ -9,12 +9,12 @@ type ResponseType = {
   data?: any;
   reason?: string;
 };
-type HandlerType = (request: RequestType, respond: (response: ResponseType) => void) => void;
+type HandlerType = (request: RequestType | undefined, respond: (response: ResponseType) => void) => void;
 
 test('simple', async () => {
   const url = 'tcp://127.0.0.1:9876';
-  const handler: HandlerType = (request: RequestType, respond: (response: ResponseType) => void) => {
-    switch (request.type) {
+  const handler: HandlerType = (request, respond) => {
+    switch (request?.type) {
       case 'get':
         respond({ success: true, data: { a: 1 } });
         break;
@@ -25,7 +25,7 @@ test('simple', async () => {
         respond({ success: false, reason: 'default' });
     }
   };
-  const responder = new ZmqResponder(url, handler);
+  const responder = new ZmqResponder<RequestType, ResponseType>(url, handler);
   const requester = new ZmqRequester<RequestType, ResponseType>(url);
 
   let res = await requester.request({ type: 'get' });
@@ -46,8 +46,8 @@ test('timeout', async () => {
   const handler: HandlerType = () => {
     // nothing to do
   };
-  const responder = new ZmqResponder(url, handler);
-  const requester = new ZmqRequester(url, 100);
+  const responder = new ZmqResponder<RequestType, ResponseType>(url, handler);
+  const requester = new ZmqRequester<RequestType, ResponseType>(url, 100);
   try {
     await requester.request({ type: 'get' });
     expect(true).toBe(false);

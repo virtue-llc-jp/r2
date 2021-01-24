@@ -113,6 +113,7 @@ describe('ReportService', () => {
       await rs.stop();
       expect(quoteAggregator.listenerCount('quoteUpdated')).toBe(0);
     } catch (ex) {
+      console.log(ex);
       if (process.env.CI && ex.message === 'Address already in use') {
         return;
       }
@@ -152,6 +153,7 @@ describe('ReportService', () => {
       await rs.stop();
       expect(quoteAggregator.listenerCount('quoteUpdated')).toBe(0);
     } catch (ex) {
+      console.log(ex);
       if (process.env.CI && ex.message === 'Address already in use') {
         return;
       }
@@ -182,12 +184,13 @@ describe('ReportService', () => {
     let client;
     try {
       await rs.start();
-      client = new SnapshotRequester('');
+      client = new SnapshotRequester('tcp://localhost:8711');
       const reply = await client.request({ type: 'spreadStatSnapshot' });
       expect(reply.success).toBe(true);
       expect(reply.data).toEqual(['dummy']);
       await rs.stop();
     } catch (ex) {
+      console.log(ex);
       if (process.env.CI && ex.message === 'Address already in use') {
         return;
       }
@@ -227,6 +230,7 @@ describe('ReportService', () => {
       expect(reply.success).toBe(false);
       await rs.stop();
     } catch (ex) {
+      console.log(ex);
       if (process.env.CI && ex.message === 'Address already in use') {
         return;
       }
