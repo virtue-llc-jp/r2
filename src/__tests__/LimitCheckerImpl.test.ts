@@ -1,13 +1,15 @@
 import MainLimitChecker from '../MainLimitChecker';
 import { options } from '@bitr/logger';
+import { ConfigStore, SpreadAnalysisResult } from '../types';
+import PositionService from '../PositionService';
 options.enabled = false;
 
 describe('MainLimitChecker', () => {
   test('MaxTargetVolumeLimit - violate', () => {
     const config = { maxTargetVolumePercent: 50 };
-    const ps = {};
-    const analysisResult = { availableVolume: 1.0, targetVolume: 0.7 };
-    const checker = new MainLimitChecker({ config }, ps, analysisResult, analysisResult, false);
+    const ps = {} as PositionService;
+    const analysisResult = { availableVolume: 1.0, targetVolume: 0.7 } as SpreadAnalysisResult;
+    const checker = new MainLimitChecker({ config } as ConfigStore, ps, analysisResult);
     checker.limits = checker.limits.filter(limit => limit.constructor.name === 'MaxTargetVolumeLimit');
     const result = checker.check();
     expect(result.success).toBe(false);
@@ -16,9 +18,9 @@ describe('MainLimitChecker', () => {
 
   test('MaxTargetVolumeLimit - pass', () => {
     const config = { maxTargetVolumePercent: 50 };
-    const ps = {};
-    const analysisResult = { availableVolume: 1.0, targetVolume: 0.3 };
-    const checker = new MainLimitChecker({ config }, ps, analysisResult, analysisResult, false);
+    const ps = {} as PositionService;
+    const analysisResult = { availableVolume: 1.0, targetVolume: 0.3 } as SpreadAnalysisResult;
+    const checker = new MainLimitChecker({ config } as ConfigStore, ps, analysisResult);
     checker.limits = checker.limits.filter(limit => limit.constructor.name === 'MaxTargetVolumeLimit');
     const result = checker.check();
     expect(result.success).toBe(true);
@@ -27,9 +29,9 @@ describe('MainLimitChecker', () => {
 
   test('MaxTargetVolumeLimit - undefined', () => {
     const config = { maxTargetVolumePercent: undefined };
-    const ps = {};
-    const analysisResult = { availableVolume: 1.0, targetVolume: 0.3 };
-    const checker = new MainLimitChecker({ config }, ps, analysisResult, analysisResult, false);
+    const ps = {} as PositionService;
+    const analysisResult = { availableVolume: 1.0, targetVolume: 0.3 } as SpreadAnalysisResult;
+    const checker = new MainLimitChecker({ config } as ConfigStore, ps, analysisResult);
     checker.limits = checker.limits.filter(limit => limit.constructor.name === 'MaxTargetVolumeLimit');
     const result = checker.check();
     expect(result.success).toBe(true);

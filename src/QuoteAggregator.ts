@@ -11,8 +11,8 @@ import { AwaitableEventEmitter } from '@bitr/awaitable-event-emitter';
 export default class QuoteAggregator extends AwaitableEventEmitter {
   private readonly log = getLogger(this.constructor.name);
   private timer;
-  private isRunning: boolean;
-  private quotes: Quote[] = [];
+  isRunning: boolean;
+  quotes: Quote[] = [];
   private retryCount: number;
 
   constructor(

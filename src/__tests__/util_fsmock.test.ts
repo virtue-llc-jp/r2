@@ -5,12 +5,11 @@ jest.mock('fs', () => ({
 }));
 
 import * as fs from 'fs';
-import * as util from '../util';
 import { getConfigRoot } from '../configUtil';
 
 test('getConfigRoot not found config.json', () => {
   const config = getConfigRoot();
-  expect(fs.existsSync.mock.calls.length).toBe(1);
+  expect((fs.existsSync as jest.Mock).mock.calls.length).toBe(1);
   expect(config.language).toBe('test');
 });
 

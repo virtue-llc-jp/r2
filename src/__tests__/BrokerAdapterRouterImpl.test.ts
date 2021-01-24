@@ -1,10 +1,10 @@
 import 'reflect-metadata';
-import { CashMarginType, OrderType, OrderSide, Broker, Order } from '../types';
+import { CashMarginType, OrderType, OrderSide, Order, ConfigStore, ConfigRoot, BrokerAdapter } from '../types';
 import BrokerAdapterRouter from '../BrokerAdapterRouter';
 import { options } from '@bitr/logger';
-import OrderImpl from '../OrderImpl';
 import { createOrder } from './helper';
 import BrokerStabilityTracker from '../BrokerStabilityTracker';
+import OrderService from '../OrderService';
 options.enabled = false;
 
 const baBitflyer = {
@@ -25,7 +25,7 @@ const baQuoine = {
   refresh: jest.fn()
 };
 
-const brokerAdapters = [baBitflyer, baQuoine];
+const ba = [baBitflyer, baQuoine];
 
 const config = {
   symbol: 'BTC/JPY',
@@ -34,14 +34,14 @@ const config = {
     recoveryInterval: 1000
   },
   brokers: [{ broker: 'dummy1' }, { broker: 'dummy2' }]
-};
+} as ConfigRoot;
 
 const orderService = {
   emitOrderUpdated: jest.fn()
-};
+} as unknown as OrderService;
 
-const bst = new BrokerStabilityTracker({ config });
-const baRouter = new BrokerAdapterRouter(brokerAdapters, bst, { config }, orderService);
+const bst = new BrokerStabilityTracker({ config } as ConfigStore);
+const baRouter = new BrokerAdapterRouter(ba, bst, { config } as ConfigStore, orderService);
 
 describe('BrokerAdapterRouter', () => {
   test('send', async () => {
@@ -78,7 +78,7 @@ describe('BrokerAdapterRouter', () => {
   });
 
   test('send throws', async () => {
-    const baBitflyer = {
+    const baBitflyer2 = {
       broker: 'Bitflyer',
       send: () => {
         throw new Error('dummy');
@@ -91,12 +91,12 @@ describe('BrokerAdapterRouter', () => {
         throw new Error('dummy');
       },
       refresh: jest.fn()
-    };
+    } as BrokerAdapter;
 
-    const brokerAdapters = [baBitflyer];
-    const baRouter = new BrokerAdapterRouter(brokerAdapters, bst, { config }, orderService);
+    const brokerAdapters = [baBitflyer2];
+    const baRouter2 = new BrokerAdapterRouter(brokerAdapters, bst, { config } as ConfigStore, orderService);
     try {
-      await baRouter.send({ broker: 'Bitflyer' });
+      await baRouter2.send({ broker: 'Bitflyer' } as Order);
     } catch (ex) {
       expect(ex.message).toBe('dummy');
       return;
@@ -105,7 +105,7 @@ describe('BrokerAdapterRouter', () => {
   });
 
   test('fetchQuotes throws', async () => {
-    const baBitflyer = {
+    const baBitflyer2 = {
       broker: 'Bitflyer',
       send: () => {
         throw new Error('dummy');
@@ -120,15 +120,15 @@ describe('BrokerAdapterRouter', () => {
       refresh: jest.fn()
     };
 
-    const brokerAdapters = [baBitflyer];
-    const baRouter = new BrokerAdapterRouter(brokerAdapters, bst, { config }, orderService);
+    const brokerAdapters = [baBitflyer2];
+    const baRouter2 = new BrokerAdapterRouter(brokerAdapters, bst, { config } as ConfigStore, orderService);
 
-    const quotes = await baRouter.fetchQuotes('Bitflyer');
+    const quotes = await baRouter2.fetchQuotes('Bitflyer');
     expect(quotes).toEqual([]);
   });
 
   test('getBtcPosition throws', async () => {
-    const baBitflyer = {
+    const baBitflyer2 = {
       broker: 'Bitflyer',
       send: () => {
         throw new Error('dummy');
@@ -143,10 +143,10 @@ describe('BrokerAdapterRouter', () => {
       refresh: jest.fn()
     };
 
-    const brokerAdapters = [baBitflyer];
-    const baRouter = new BrokerAdapterRouter(brokerAdapters, bst, { config }, orderService);
+    const brokerAdapters = [baBitflyer2];
+    const baRouter2 = new BrokerAdapterRouter(brokerAdapters, bst, { config } as ConfigStore, orderService);
     try {
-      await baRouter.getPositions('Bitflyer');
+      await baRouter2.getPositions('Bitflyer');
     } catch (ex) {
       expect(ex.message).toBe('dummy');
       return;
@@ -155,15 +155,15 @@ describe('BrokerAdapterRouter', () => {
   });
 
   test('getBtcPosition/getPositions not found', async () => {
-    const baBitflyer = {
+    const baBitflyer2 = {
       broker: 'Bitflyer'
-    };
+    } as BrokerAdapter;
 
-    const brokerAdapters = [baBitflyer];
+    const brokerAdapters = [baBitflyer2];
     const conf = Object.assign({}, config, { symbol: 'XXX/YYY' });
-    const baRouter = new BrokerAdapterRouter(brokerAdapters, bst, { config: conf }, orderService);
+    const baRouter2 = new BrokerAdapterRouter(brokerAdapters, bst, { config: conf } as ConfigStore, orderService);
     try {
-      await baRouter.getPositions('Bitflyer');
+      await baRouter2.getPositions('Bitflyer');
     } catch (ex) {
       expect(ex.message).toBe('Unable to find a method to get positions.');
       return;
@@ -172,15 +172,15 @@ describe('BrokerAdapterRouter', () => {
   });
 
   test('getPositions for non BTC/JPY symbol', async () => {
-    const baBitflyer = {
+    const baBitflyer2 = {
       broker: 'Bitflyer',
       getPositions: jest.fn()
-    };
+    } as unknown as BrokerAdapter;
 
-    const brokerAdapters = [baBitflyer];
+    const brokerAdapters = [baBitflyer2];
     const conf = Object.assign({}, config, { symbol: 'XXX/YYY' });
-    const baRouter = new BrokerAdapterRouter(brokerAdapters, bst, { config: conf }, orderService);
-    await baRouter.getPositions('Bitflyer');
-    expect(baBitflyer.getPositions).toBeCalled();
+    const baRouter2 = new BrokerAdapterRouter(brokerAdapters, bst, { config: conf } as ConfigStore, orderService);
+    await baRouter2.getPositions('Bitflyer');
+    expect(baBitflyer2.getPositions).toBeCalled();
   });
 });

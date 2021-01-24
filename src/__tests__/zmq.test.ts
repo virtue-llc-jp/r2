@@ -1,9 +1,17 @@
-import { ZmqRequester, ZmqResponder } from '../lib';
-import { parseBuffer } from '../lib/util';
+import { ZmqRequester, ZmqResponder } from '../zmq';
+import { parseBuffer } from '../zmq/util';
 
 test('simple', async () => {
   const url = 'tcp://127.0.0.1:9876';
-  const handler = (request, respond) => {
+  interface RequestType {
+    type: string;
+  }
+  interface ResponseType {
+    success: boolean;
+    data?: any;
+    reason?: string;
+  }
+  const handler = (request: RequestType, respond: (response: ResponseType) => void) => {
     switch (request.type) {
       case 'get':
         respond({ success: true, data: { a: 1 } });
@@ -16,7 +24,7 @@ test('simple', async () => {
     }
   };
   const responder = new ZmqResponder(url, handler);
-  const requester = new ZmqRequester(url);
+  const requester = new ZmqRequester<RequestType, ResponseType>(url);
 
   let res = await requester.request({ type: 'get' });
   expect(res.success).toBe(true);
@@ -24,7 +32,7 @@ test('simple', async () => {
   res = await requester.request({ type: 'set' });
   expect(res.success).toBe(false);
   expect(res.reason).toBe('failed to set');
-  res = await requester.request('{{{invalid string');
+  res = await requester.request('{{{invalid string' as unknown as RequestType);
   expect(res.success).toBe(false);
   expect(res.reason).toBe('default');
   responder.dispose();
@@ -33,7 +41,9 @@ test('simple', async () => {
 
 test('timeout', async () => {
   const url = 'tcp://127.0.0.1:9876';
-  const handler = (request, respond) => {};
+  const handler = (request, respond) => {
+    // nothing to do
+  };
   const responder = new ZmqResponder(url, handler);
   const requester = new ZmqRequester(url, 100);
   try {

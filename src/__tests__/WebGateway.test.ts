@@ -24,7 +24,7 @@ describe('WebGateway', () => {
       configStore,
       positionService,
       opportunitySearcher,
-      activePairStore,
+      // activePairStore,
       orderService
     );
     await wg.start();
@@ -42,7 +42,7 @@ describe('WebGateway', () => {
       configStore,
       positionService,
       opportunitySearcher,
-      activePairStore,
+      // activePairStore,
       orderService
     );
     try {
@@ -63,7 +63,7 @@ describe('WebGateway', () => {
       configStore,
       positionService,
       opportunitySearcher,
-      activePairStore,
+      // activePairStore,
       orderService
     );
     let ws;
@@ -99,7 +99,7 @@ describe('WebGateway', () => {
       configStore,
       positionService,
       opportunitySearcher,
-      activePairStore,
+      // activePairStore,
       orderService
     );
     try {

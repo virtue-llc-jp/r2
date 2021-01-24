@@ -13,7 +13,7 @@ import { calcProfit } from './pnl';
 
 export default class MainLimitChecker implements LimitChecker {
   private readonly log = getLogger(this.constructor.name);
-  private limits: LimitChecker[];
+  limits: LimitChecker[];
 
   constructor(
     configStore: ConfigStore,

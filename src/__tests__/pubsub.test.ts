@@ -1,5 +1,5 @@
-import ZmqPublisher from '../lib/ZmqPublisher';
-import ZmqSubscriber from '../lib/ZmqSubscriber';
+import ZmqPublisher from '../zmq/ZmqPublisher';
+import ZmqSubscriber from '../zmq/ZmqSubscriber';
 
 function delay(time: number): Promise<void> {
   return new Promise(resolve => setTimeout(resolve, time));
@@ -23,10 +23,10 @@ test('simple', async () => {
       pub.publish(topic, 'message');
       if (received) {
         clearInterval(timer);
-        resolve();
+        resolve({});
       }
-    }, 10)
-  })
+    }, 10);
+  });
   sub.unsubscribe(topic);
   sub.dispose();
   pub.dispose();
