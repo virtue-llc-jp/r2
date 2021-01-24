@@ -152,9 +152,6 @@ describe('ReportService', () => {
       expect(quoteAggregator.listenerCount('quoteUpdated')).toBe(0);
     } catch (ex) {
       console.log(ex);
-      if (process.env.CI && ex.message === 'Address already in use') {
-        return;
-      }
       expect(true).toBe(false);
     }
   });
@@ -199,9 +196,6 @@ describe('ReportService', () => {
       expect(quoteAggregator.listenerCount('quoteUpdated')).toBe(0);
     } catch (ex) {
       console.log(ex);
-      if (process.env.CI && ex.message === 'Address already in use') {
-        return;
-      }
       expect(true).toBe(false);
     }
   });
@@ -243,9 +237,6 @@ describe('ReportService', () => {
       await rs.stop();
     } catch (ex) {
       console.log(ex);
-      if (process.env.CI && ex.message === 'Address already in use') {
-        return;
-      }
       expect(true).toBe(false);
     } finally {
       if (client) {
@@ -290,9 +281,6 @@ describe('ReportService', () => {
       await rs.stop();
     } catch (ex) {
       console.log(ex);
-      if (process.env.CI && ex.message === 'Address already in use') {
-        return;
-      }
       expect(true).toBe(false);
     } finally {
       if (client) {

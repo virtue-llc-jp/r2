@@ -35,15 +35,10 @@ describe('AnalyticsService', () => {
             try {
               let as = new AnalyticsService(configStoreSocketUrl, reportServiceRepUrl, reportServicePubUrl);
               try {
-                console.log('before as.start()');
                 await as.start();
-                console.log('after as.start() / before delay(10)');
                 await delay(10);
-                console.log('after delay(10)');
               } finally {
-                console.log('before as.stop()');
                 await as.stop();
-                console.log('after as.stop()');
               }
             } finally {
               rsRep.dispose();
@@ -203,7 +198,9 @@ describe('AnalyticsService', () => {
 
       as = new AnalyticsService(configStoreSocketUrl, reportServiceRepUrl, reportServicePubUrl);
       await as.start();
-      as.streamSubscriber.subscribe('sometopic', (message) => console.log(message));
+      as.streamSubscriber.subscribe('sometopic', () => {
+        // nothing to do
+      });
       await delay(100);
       rsPub.send(['spreadStat', JSON.stringify({ pattern: 1 })]);
       rsPub.send(['spreadStat', 'handling']);
@@ -220,9 +217,6 @@ describe('AnalyticsService', () => {
       await delay(10);
     } catch (ex) {
       console.log(ex);
-      if (process.env.CI && ex.message === 'Address already in use') {
-        return;
-      }
       expect(true).toBe(false);
     } finally {
       if (as) {

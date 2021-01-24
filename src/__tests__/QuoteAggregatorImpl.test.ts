@@ -114,7 +114,7 @@ describe('Quote Aggregator', () => {
     const mustBeCalled = jest.fn();
     aggregator.on('quoteUpdated', async (quotes) => {
       expect(quotes.length).toBe(1);
-      mustBeCalled();
+      await mustBeCalled();
     });
     await aggregator.start();
     await delay(0);
