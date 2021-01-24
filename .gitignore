@@ -18,3 +18,4 @@ config.json
 datastore/
 reports/
 sandbox/
+src/__tests__/database
