@@ -35,10 +35,15 @@ describe('AnalyticsService', () => {
             try {
               let as = new AnalyticsService(configStoreSocketUrl, reportServicePubUrl, reportServiceRepUrl);
               try {
+                console.log('before as.start()');
                 await as.start();
+                console.log('after as.start() / before delay(10)');
                 await delay(10);
+                console.log('after delay(10)');
               } finally {
+                console.log('before as.stop()');
                 await as.stop();
+                console.log('after as.stop()');
               }
             } finally {
               rsRep.dispose();

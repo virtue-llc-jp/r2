@@ -54,7 +54,9 @@ export default class AppRoot {
   }
 
   private async bindBrokers(): Promise<void> {
+    this.log.debug('bindBrokers(): start');
     const configStore = this.ioc.get<ConfigStore>(symbols.ConfigStore);
+    this.log.debug('bindBrokers(): configStore got');
     const brokerConfigs = configStore.config.brokers;
     const bindTasks = brokerConfigs.map(async brokerConfig => {
       const brokerName = brokerConfig.broker;
@@ -66,8 +68,11 @@ export default class AppRoot {
       }
       const brokerAdapter = brokerModule.create(brokerConfig);
       this.ioc.bind<BrokerAdapter>(symbols.BrokerAdapter).toConstantValue(brokerAdapter);
+      this.log.debug(`bindBrokers(): ${brokerName} bound`);
     });
+    this.log.debug('bindBrokers(): all brokers bound');
     await Promise.all(bindTasks);
+    this.log.debug('bindBrokers(): finish');
   }
 
   private async tryImport(path: string): Promise<any> {

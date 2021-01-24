@@ -33,9 +33,7 @@ export default class ReportService {
     private readonly quoteAggregator: QuoteAggregator,
     private readonly spreadAnalyzer: SpreadAnalyzer,
     @inject(symbols.SpreadStatTimeSeries) private readonly spreadStatTimeSeries: SpreadStatTimeSeries,
-    @inject(symbols.ConfigStore) private readonly configStore: ConfigStore,
-    private readonly pubUrl?: string,
-    private readonly repUrl?: string
+    @inject(symbols.ConfigStore) private readonly configStore: ConfigStore
   ) {}
 
   async start() {
@@ -54,14 +52,14 @@ export default class ReportService {
       const start = dt.minus(duration).toJSDate();
       const end = dt.toJSDate();
       const snapshot = await this.spreadStatTimeSeries.query({ start, end });
-      this.snapshotResponder = new SnapshotResponder(this.repUrl ?? reportServiceRepUrl, (request, respond) => {
+      this.snapshotResponder = new SnapshotResponder(reportServiceRepUrl, (request, respond) => {
         if (request && request.type === 'spreadStatSnapshot') {
           respond({ success: true, data: snapshot.map(s => s.value) });
         } else {
           respond({ success: false, reason: 'invalid request' });
         }
       });
-      this.streamPublisher = new ZmqPublisher(this.pubUrl ?? reportServicePubUrl);
+      this.streamPublisher = new ZmqPublisher(reportServicePubUrl);
       this.analyticsProcess = fork(this.analyticsPath, [], { stdio: [0, 1, 2, 'ipc'] });
     }
     this.log.debug('Started.');
