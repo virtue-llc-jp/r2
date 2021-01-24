@@ -2,7 +2,9 @@ import { ChronoDB, TimeSeries } from '../chronodb/index';
 
 let chrono: ChronoDB;
 beforeAll(() => {
-  chrono = new ChronoDB(`${__dirname}/database`);
+  const path = `${__dirname}/database`;
+  console.log(`chronodb.test.ts: path=${path}`);
+  chrono = new ChronoDB(path);
 });
 
 afterAll(async () => {
