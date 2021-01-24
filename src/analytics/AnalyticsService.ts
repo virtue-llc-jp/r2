@@ -68,7 +68,7 @@ export default class AnalyticsService {
   }
 
   private async getSpreadStatHandler(snapshot: SpreadStat[]): Promise<SpreadStatHandlerPlugin> {
-    const SpreadStatHandler = await import(`${this.pluginDir}/${this.config.plugin}`);
+    const SpreadStatHandler = require(`${this.pluginDir}/${this.config.plugin}`);
     return new SpreadStatHandler(snapshot);
   }
 

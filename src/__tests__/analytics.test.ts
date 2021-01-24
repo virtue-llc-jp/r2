@@ -33,7 +33,7 @@ describe('AnalyticsService', () => {
               respond({ success: true, data: [] });
             });
             try {
-              let as = new AnalyticsService(configStoreSocketUrl, reportServicePubUrl, reportServiceRepUrl);
+              let as = new AnalyticsService(configStoreSocketUrl, reportServiceRepUrl, reportServicePubUrl);
               try {
                 console.log('before as.start()');
                 await as.start();
@@ -84,7 +84,7 @@ describe('AnalyticsService', () => {
       rsRep = new SnapshotResponder(reportServiceRepUrl, (request, respond) => {
         respond({ success: false, data: [] });
       });
-      as = new AnalyticsService(configStoreSocketUrl, reportServicePubUrl, reportServiceRepUrl);
+      as = new AnalyticsService(configStoreSocketUrl, reportServiceRepUrl, reportServicePubUrl);
       await as.start();
     } catch (ex) {
       expect(ex.message).toBe('Failed to initial snapshot message.');
@@ -122,7 +122,7 @@ describe('AnalyticsService', () => {
         respond({ success: true, data: undefined });
       });
 
-      as = new AnalyticsService(configStoreSocketUrl, reportServicePubUrl, reportServiceRepUrl);
+      as = new AnalyticsService(configStoreSocketUrl, reportServiceRepUrl, reportServicePubUrl);
       await as.start();
       expect(true).toBe(false);
     } catch (ex) {
@@ -162,7 +162,7 @@ describe('AnalyticsService', () => {
       rsRep.on('message', () => {
         rsRep.send('{invalid');
       });
-      as = new AnalyticsService(configStoreSocketUrl, reportServicePubUrl, reportServiceRepUrl);
+      as = new AnalyticsService(configStoreSocketUrl, reportServiceRepUrl, reportServicePubUrl);
       await as.start();
       expect(true).toBe(false);
     } catch (ex) {
@@ -201,7 +201,7 @@ describe('AnalyticsService', () => {
         respond({ success: true, data: [] });
       });
 
-      as = new AnalyticsService(configStoreSocketUrl, reportServicePubUrl, reportServiceRepUrl);
+      as = new AnalyticsService(configStoreSocketUrl, reportServiceRepUrl, reportServicePubUrl);
       await as.start();
       as.streamSubscriber.subscribe('sometopic', (message) => console.log(message));
       await delay(100);
@@ -256,7 +256,7 @@ describe('AnalyticsService', () => {
       rsRep = new SnapshotResponder(reportServiceRepUrl, (request, respond) => {
         respond({ success: true, data: [] });
       });
-      as = new AnalyticsService(configStoreSocketUrl, reportServicePubUrl, reportServiceRepUrl);
+      as = new AnalyticsService(configStoreSocketUrl, reportServiceRepUrl, reportServicePubUrl);
       await as.start();
       process.emit('message', 'invalid', undefined);
       process.emit('message', 'stop', undefined);

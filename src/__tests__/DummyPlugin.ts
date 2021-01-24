@@ -1,13 +1,9 @@
-const _ = require('lodash');
-const ss = require('simple-statistics');
-const { getLogger } = require('@bitr/logger');
+class DummyPlugin {
+  constructor() {
+    // nothing to do
+  } 
 
-const precision = 3;
-
-class SimpleSpreadStatHandler {
-  constructor(history) {}
-
-  async handle(spreadStat) {
+  async handle(spreadStat: { pattern: number }) {
     if (spreadStat.pattern === 1) {
       return { someconfig: 1 };
     }
@@ -18,4 +14,4 @@ class SimpleSpreadStatHandler {
   }
 }
 
-module.exports = SimpleSpreadStatHandler;
+module.exports = DummyPlugin;
