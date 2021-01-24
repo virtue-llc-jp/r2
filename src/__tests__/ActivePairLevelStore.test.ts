@@ -1,12 +1,12 @@
-import { OrderStatus, OrderSide, CashMarginType, OrderType, Broker, OrderPair } from '../types';
+import { OrderStatus, OrderSide, CashMarginType, OrderType, Broker, OrderPair, ActivePairStore } from '../types';
 import { getActivePairStore } from '../ActivePairLevelStore';
 import { ChronoDB } from '../chronodb';
 import { createOrder } from './helper';
 import * as OrderUtil from '../OrderUtil';
 
 describe('ActivePairLevelStore', () => {
-  let store;
-  let chronoDB;
+  let store: ActivePairStore;
+  let chronoDB: ChronoDB;
   beforeAll(async () => {
     chronoDB = new ChronoDB(`${__dirname}/datastore/1`);
     store = getActivePairStore(chronoDB);
