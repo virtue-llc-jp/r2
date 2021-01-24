@@ -8,6 +8,9 @@ import { SnapshotRequester } from '../messages';
 import QuoteAggregator from '../QuoteAggregator';
 import { AwaitableEventEmitter } from '@bitr/awaitable-event-emitter';
 
+const reportServicePubUrl = 'tcp://127.0.0.1:8790';
+const reportServiceRepUrl = 'tcp://127.0.0.1:8791';
+
 function createQuoteAggregatorMock() {
   const aee: QuoteAggregator = new AwaitableEventEmitter() as QuoteAggregator;
   aee.start = jest.fn();
@@ -27,7 +30,14 @@ describe('ReportService', () => {
     const timeSeries = ({ put: jest.fn() } as unknown) as SpreadStatTimeSeries;
     const config = {};
 
-    const rs = new ReportService(quoteAggregator, spreadAnalyzer, timeSeries, { config } as ConfigStore);
+    const rs = new ReportService(
+      quoteAggregator,
+      spreadAnalyzer,
+      timeSeries,
+      { config } as ConfigStore,
+      reportServicePubUrl,
+      reportServiceRepUrl
+    );
     rimraf.sync(rs.reportDir);
     await rs.start();
     expect(quoteAggregator.listenerCount('quoteUpdated')).toBe(1);
@@ -41,7 +51,14 @@ describe('ReportService', () => {
     const timeSeries = ({ put: jest.fn() } as unknown) as SpreadStatTimeSeries;
     const config = {};
 
-    const rs = new ReportService(quoteAggregator, spreadAnalyzer, timeSeries, { config } as ConfigStore);
+    const rs = new ReportService(
+      quoteAggregator,
+      spreadAnalyzer,
+      timeSeries,
+      { config } as ConfigStore,
+      reportServicePubUrl,
+      reportServiceRepUrl
+    );
     mkdirp.sync(rs.reportDir);
     await rs.start();
     expect(quoteAggregator.listenerCount('quoteUpdated')).toBe(1);
@@ -55,7 +72,14 @@ describe('ReportService', () => {
     const timeSeries = ({ put: jest.fn() } as unknown) as SpreadStatTimeSeries;
     const config = {};
 
-    const rs = new ReportService(quoteAggregator, spreadAnalyzer, timeSeries, { config } as ConfigStore);
+    const rs = new ReportService(
+      quoteAggregator,
+      spreadAnalyzer,
+      timeSeries,
+      { config } as ConfigStore,
+      reportServicePubUrl,
+      reportServiceRepUrl
+    );
     mkdirp.sync(rs.reportDir);
     await rs.start();
     expect(quoteAggregator.listenerCount('quoteUpdated')).toBe(1);
@@ -79,7 +103,14 @@ describe('ReportService', () => {
     const timeSeries = ({ put: jest.fn() } as unknown) as SpreadStatTimeSeries;
     const config = {};
 
-    const rs = new ReportService(quoteAggregator, spreadAnalyzer, timeSeries, { config } as ConfigStore);
+    const rs = new ReportService(
+      quoteAggregator,
+      spreadAnalyzer,
+      timeSeries,
+      { config } as ConfigStore,
+      reportServicePubUrl,
+      reportServiceRepUrl
+    );
     mkdirp.sync(rs.reportDir);
     await rs.start();
     expect(quoteAggregator.listenerCount('quoteUpdated')).toBe(1);
@@ -105,7 +136,14 @@ describe('ReportService', () => {
       },
     };
 
-    const rs = new ReportService(quoteAggregator, spreadAnalyzer, timeSeries, { config } as ConfigStore);
+    const rs = new ReportService(
+      quoteAggregator,
+      spreadAnalyzer,
+      timeSeries,
+      { config } as ConfigStore,
+      reportServicePubUrl,
+      reportServiceRepUrl
+    );
     rimraf.sync(rs.reportDir);
     try {
       await rs.start();
@@ -139,7 +177,14 @@ describe('ReportService', () => {
     const spreadAnalyzer = new SpreadAnalyzer({ config } as ConfigStore);
     const timeSeries = ({ put: jest.fn(), query: jest.fn() } as unknown) as SpreadStatTimeSeries;
 
-    const rs = new ReportService(quoteAggregator, spreadAnalyzer, timeSeries, { config } as ConfigStore);
+    const rs = new ReportService(
+      quoteAggregator,
+      spreadAnalyzer,
+      timeSeries,
+      { config } as ConfigStore,
+      reportServicePubUrl,
+      reportServiceRepUrl
+    );
     mkdirp.sync(rs.reportDir);
     try {
       await rs.start();
@@ -179,12 +224,19 @@ describe('ReportService', () => {
     const spreadAnalyzer = new SpreadAnalyzer({ config } as ConfigStore);
     const timeSeries = ({ put: jest.fn(), query: () => [{ value: 'dummy' }] } as unknown) as SpreadStatTimeSeries;
 
-    const rs = new ReportService(quoteAggregator, spreadAnalyzer, timeSeries, { config } as ConfigStore);
+    const rs = new ReportService(
+      quoteAggregator,
+      spreadAnalyzer,
+      timeSeries,
+      { config } as ConfigStore,
+      reportServicePubUrl,
+      reportServiceRepUrl
+    );
     mkdirp.sync(rs.reportDir);
     let client;
     try {
       await rs.start();
-      client = new SnapshotRequester('tcp://localhost:8711');
+      client = new SnapshotRequester(reportServiceRepUrl);
       const reply = await client.request({ type: 'spreadStatSnapshot' });
       expect(reply.success).toBe(true);
       expect(reply.data).toEqual(['dummy']);
@@ -220,12 +272,19 @@ describe('ReportService', () => {
     const spreadAnalyzer = new SpreadAnalyzer({ config } as ConfigStore);
     const timeSeries = ({ put: jest.fn(), query: () => [] } as unknown) as SpreadStatTimeSeries;
 
-    const rs = new ReportService(quoteAggregator, spreadAnalyzer, timeSeries, { config } as ConfigStore);
+    const rs = new ReportService(
+      quoteAggregator,
+      spreadAnalyzer,
+      timeSeries,
+      { config } as ConfigStore,
+      reportServicePubUrl,
+      reportServiceRepUrl
+    );
     mkdirp.sync(rs.reportDir);
     let client;
     try {
       await rs.start();
-      client = new SnapshotRequester('tcp://localhost:8711');
+      client = new SnapshotRequester(reportServiceRepUrl);
       const reply = await client.request('invalid');
       expect(reply.success).toBe(false);
       await rs.stop();

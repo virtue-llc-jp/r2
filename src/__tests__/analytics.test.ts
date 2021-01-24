@@ -6,9 +6,9 @@ import { ConfigResponder, SnapshotResponder } from '../messages';
 import { ConfigRoot } from '../types';
 
 options.enabled = false;
-export const configStoreSocketUrl = 'tcp://127.0.0.1:8797';
-export const reportServicePubUrl = 'tcp://127.0.0.1:8790';
-export const reportServiceRepUrl = 'tcp://127.0.0.1:8791';
+const configStoreSocketUrl = 'tcp://127.0.0.1:8796';
+const reportServicePubUrl = 'tcp://127.0.0.1:8790';
+const reportServiceRepUrl = 'tcp://127.0.0.1:8791';
 
 describe('AnalyticsService', () => {
   test('start/stop', async () => {
