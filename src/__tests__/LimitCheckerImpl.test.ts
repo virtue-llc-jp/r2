@@ -1,6 +1,6 @@
 import MainLimitChecker from '../MainLimitChecker';
 import { options } from '@bitr/logger';
-import { ConfigStore, SpreadAnalysisResult } from '../types';
+import { ConfigRoot, ConfigStore, SpreadAnalysisResult } from '../types';
 import PositionService from '../PositionService';
 options.enabled = false;
 
@@ -28,7 +28,7 @@ describe('MainLimitChecker', () => {
   });
 
   test('MaxTargetVolumeLimit - undefined', () => {
-    const config = { maxTargetVolumePercent: undefined };
+    const config = { maxTargetVolumePercent: undefined } as unknown as ConfigRoot;
     const ps = {} as PositionService;
     const analysisResult = { availableVolume: 1.0, targetVolume: 0.3 } as SpreadAnalysisResult;
     const checker = new MainLimitChecker({ config } as ConfigStore, ps, analysisResult);

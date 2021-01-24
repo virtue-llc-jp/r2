@@ -1,6 +1,6 @@
 import 'reflect-metadata';
 import PositionService from '../PositionService';
-import { ConfigRoot, ConfigStore } from '../types';
+import { Broker, ConfigRoot, ConfigStore } from '../types';
 import * as _ from 'lodash';
 import { delay } from '../util';
 import { options } from '@bitr/logger';
@@ -78,9 +78,11 @@ describe('Position Service', () => {
   });
 
   test('positions smaller than minSize', async () => {
-    const baRouter2 = ({
-      getPositions: (broker) => (broker === 'Quoine' ? new Map([['BTC', 0.000002]]) : new Map([['BTC', -0.3]])),
-    } as unknown) as BrokerAdapterRouter;
+    const baRouter2 = {
+      getPositions: async (broker: Broker) => (
+        broker === 'Quoine' ? new Map([['BTC', 0.000002]]) : new Map([['BTC', -0.3]])
+      )
+    } as BrokerAdapterRouter;
     const ps = new PositionService(configStore, baRouter2, bst);
     await ps.start();
     const positions = _.values(ps.positionMap);
@@ -154,12 +156,14 @@ describe('Position Service', () => {
       ],
     } as ConfigRoot;
 
-    const configStore2 = { config2 } as unknown as ConfigStore;
-    const baRouter2 = ({
-      getPositions: (broker) => (broker === 'Quoine' ? new Map([['BTC', 0.2]]) : new Map([['BTC', -0.3]])),
-    } as unknown) as BrokerAdapterRouter;
+    const configStore2 = { config: config2 } as ConfigStore;
+    const baRouter2 = {
+      getPositions: async (broker: Broker) => (
+        broker === 'Quoine' ? new Map([['BTC', 0.2]]) : new Map([['BTC', -0.3]])
+      )
+    } as BrokerAdapterRouter;
     const bst2 = new BrokerStabilityTracker(configStore2);
-    const ps = new PositionService(configStore, baRouter2, bst2);
+    const ps = new PositionService(configStore2, baRouter2, bst2);
     await ps.start();
     const positions = _.values(ps.positionMap);
     expect(positions.length).toBe(0);

@@ -1,12 +1,14 @@
 import AnalyticsService from '../analytics/AnalyticsService';
 import { socket } from 'zeromq';
-import { configStoreSocketUrl, reportServicePubUrl, reportServiceRepUrl } from '../constants';
 import { delay } from '../util';
 import { options } from '@bitr/logger';
 import { ConfigResponder, SnapshotResponder } from '../messages';
 import { ConfigRoot } from '../types';
 
 options.enabled = false;
+export const configStoreSocketUrl = 'tcp://127.0.0.1:8799';
+export const reportServicePubUrl = 'tcp://127.0.0.1:8790';
+export const reportServiceRepUrl = 'tcp://127.0.0.1:8791';
 
 describe('AnalyticsService', () => {
   test('start/stop', async () => {
@@ -34,10 +36,6 @@ describe('AnalyticsService', () => {
       await as.start();
       await delay(10);
     } catch (ex) {
-      console.log(ex);
-      if (process.env.CI && ex.message === 'Address already in use') {
-        return;
-      }
       console.log(ex);
       expect(true).toBe(false);
     } finally {
@@ -75,9 +73,6 @@ describe('AnalyticsService', () => {
       as = new AnalyticsService();
       await as.start();
     } catch (ex) {
-      if (process.env.CI && ex.message === 'Address already in use') {
-        return;
-      }
       expect(ex.message).toBe('Failed to initial snapshot message.');
     } finally {
       if (as) {
@@ -253,9 +248,6 @@ describe('AnalyticsService', () => {
       process.emit('message', 'stop', undefined);
       await delay(10);
     } catch (ex) {
-      if (process.env.CI && ex.message === 'Address already in use') {
-        return;
-      }
       expect(true).toBe(false);
     } finally {
       if (as) {

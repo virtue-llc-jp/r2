@@ -1239,7 +1239,7 @@ describe('Arbitrager', () => {
   });
 
   test('Send and only buy order filled -> invalid action', async () => {
-    config.onSingleLeg = { options: { limitMovePercent: 10 } } as OnSingleLegConfig;
+    config.onSingleLeg = { action: 'Invalid', options: { limitMovePercent: 10 } } as unknown as OnSingleLegConfig;
     baRouter.refresh = jest.fn().mockImplementation(async (order) => {
       order.filledSize = 0;
       if (order.side === OrderSide.Buy) {

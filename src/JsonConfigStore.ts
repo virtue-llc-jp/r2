@@ -21,9 +21,9 @@ export default class JsonConfigStore extends EventEmitter implements ConfigStore
   TTL = 5 * 1000;
   private cache?: ConfigRoot;
 
-  constructor(private readonly configValidator: ConfigValidator) {
+  constructor(private readonly configValidator: ConfigValidator, url?: string) {
     super();
-    this.responder = new ConfigResponder(configStoreSocketUrl, (request, respond) =>
+    this.responder = new ConfigResponder(url ?? configStoreSocketUrl, (request, respond) =>
       this.requestHandler(request, respond)
     );
   }
