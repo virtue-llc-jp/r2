@@ -8,8 +8,8 @@ import { SnapshotRequester } from '../messages';
 import QuoteAggregator from '../QuoteAggregator';
 import { AwaitableEventEmitter } from '@bitr/awaitable-event-emitter';
 
-const reportServicePubUrl = 'tcp://127.0.0.1:8790';
-const reportServiceRepUrl = 'tcp://127.0.0.1:8791';
+const reportServicePubUrl = 'tcp://127.0.0.1:8792';
+const reportServiceRepUrl = 'tcp://127.0.0.1:8793';
 
 function createQuoteAggregatorMock() {
   const aee: QuoteAggregator = new AwaitableEventEmitter() as QuoteAggregator;
